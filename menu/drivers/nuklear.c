@@ -267,7 +267,7 @@ static void nk_menu_init_device(nk_menu_handle_t *nk)
    nk->icons.page_off = nk_common_image_load(buf);
 
    nk->size_changed = true;
-   nk_common_set_style(&nk->ctx, THEME_BLUE);
+   nk_common_set_style(&nk->ctx, THEME_DARK);
 }
 
 static void *nk_menu_init(void **userdata)

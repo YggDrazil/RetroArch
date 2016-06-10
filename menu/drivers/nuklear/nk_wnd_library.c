@@ -32,7 +32,7 @@
 static char* out;
 static char core[PATH_MAX_LENGTH] = {0};
 static char content[PATH_MAX_LENGTH] = {0};
-static float ratio[] = {0.85f, 0.15f};
+static float ratio[] = {0.3f, 0.7f};
 
 void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height)
 {
@@ -70,7 +70,9 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height),
          0))
    {
-
+      nk_layout_row(ctx, NK_DYNAMIC, 30, 3, ratio);
+      nk_label(ctx,"Playlists", NK_TEXT_LEFT);
+      nk_label(ctx,"Content", NK_TEXT_LEFT);
    }
 
    /* save position and size to restore after context reset */
