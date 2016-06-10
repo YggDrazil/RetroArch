@@ -25,6 +25,7 @@
 #include <file/file_path.h>
 #include <string/stdstring.h>
 #include <lists/string_list.h>
+#include <lists/dir_list.h>
 
 #include "../../menu_driver.h"
 #include "../../menu_hash.h"
@@ -34,15 +35,25 @@ static char core[PATH_MAX_LENGTH] = {0};
 static char content[PATH_MAX_LENGTH] = {0};
 static float ratio[] = {0.3f, 0.7f};
 
+static struct string_list *files  = NULL;
+
+static struct nk_panel left_col;
+static struct nk_panel right_col;
+
+
 void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height)
 {
    unsigned i;
+   char buf[PATH_MAX_LENGTH];
    video_shader_ctx_t shader_info;
    struct nk_panel layout;
-   struct nk_panel left_col;
-   struct nk_panel right_col;
+
    struct nk_context *ctx = &nk->ctx;
-   const int id           = NK_WND_LIBRARY;
+   const int id  = NK_WND_LIBRARY;
+   settings_t *settings = config_get_ptr();
+
+   if (!files)
+      files = dir_list_new(settings->directory.playlist, "lpl", true, true);
 
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height), 0))
    {
@@ -51,9 +62,16 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       {
          nk_layout_row_dynamic(ctx, 30, 1);
          nk_label(ctx,"Playlists", NK_TEXT_LEFT);
-         unsigned i = 0;
-         for (i = 0; i < 30; i++)
-            nk_button_label(ctx, "Super Nintendo", NK_BUTTON_DEFAULT);
+
+         for (i = 0; i < files->size; i++)
+         {
+            strlcpy(buf, files->elems[i].data, sizeof(buf));
+            path_remove_extension(buf);
+            if (nk_button_label(ctx, path_basename(buf), NK_BUTTON_DEFAULT))
+            {
+               RARCH_LOG ("do stuff\n");
+            }
+         }
          nk_group_end(ctx);
       }
       if (nk_group_begin(ctx, &right_col, "Content", 0))
