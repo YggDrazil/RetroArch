@@ -72,14 +72,15 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       nk_layout_row(ctx, NK_DYNAMIC, 300, 2, ratio);
       if (nk_group_begin(ctx, &left_col, "", 0))
       {
-         nk_layout_row(ctx, NK_DYNAMIC, 30, 1, ratio);
+         nk_layout_row_dynamic(ctx, 30, 1);
          nk_label(ctx,"Playlists", NK_TEXT_LEFT);
+         nk_button_label(ctx, "Super Nintendo", NK_BUTTON_DEFAULT);
          nk_group_end(ctx);
       }
       if (nk_group_begin(ctx, &left_col, "", 0))
       {
-         nk_layout_row(ctx, NK_DYNAMIC, 30, 1, ratio);
-         nk_label(ctx,"Content", NK_TEXT_LEFT);
+         nk_layout_row_dynamic(ctx, 30, 1);
+         nk_label(ctx,"Playlists", NK_TEXT_LEFT);
          nk_group_end(ctx);
       }
    }
