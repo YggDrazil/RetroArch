@@ -68,33 +68,9 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
 
 
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height),
-         NK_WINDOW_CLOSABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_MOVABLE|
-         NK_WINDOW_SCALABLE|NK_WINDOW_BORDER))
+         0))
    {
-      nk_layout_row_dynamic(ctx, 30, 1);
-      nk_label(ctx,"Core:", NK_TEXT_LEFT);
-      nk_layout_row(ctx, NK_DYNAMIC, 30, 3, ratio);
-      nk_edit_string(ctx, NK_EDIT_SIMPLE, path_basename(core), &len_core, 64, nk_filter_default);
-      if (nk_button_text(ctx, "...", 3, NK_BUTTON_DEFAULT))
-      {
-         out = &core;
-         strlcpy(picker_title, "Select core", sizeof(picker_title));
-         strlcpy(picker_filter, ".dll", sizeof(picker_filter));
-         picker_startup_dir = settings->directory.libretro;
-         nk->window[NK_WND_FILE_PICKER].open = true;
-      }
-      nk_layout_row_dynamic(ctx, 30, 1);
-      nk_label(ctx,"Content:", NK_TEXT_LEFT);
-      nk_layout_row(ctx, NK_DYNAMIC, 30, 3, ratio);
-      nk_edit_string(ctx, NK_EDIT_SIMPLE, content, &len_content, 64, nk_filter_default);
-      if (nk_button_text(ctx, "...", 3, NK_BUTTON_DEFAULT))
-      {
-         out = &content;
-         strlcpy(picker_title, "Select content", sizeof(picker_title));
-         strlcpy(picker_filter, ".zip", sizeof(picker_filter));
-         picker_startup_dir = settings->directory.menu_content;
-         nk->window[NK_WND_FILE_PICKER].open = true;
-      }
+
    }
 
    /* save position and size to restore after context reset */
