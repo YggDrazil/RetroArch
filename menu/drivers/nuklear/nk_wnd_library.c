@@ -26,6 +26,7 @@
 #include <string/stdstring.h>
 #include <lists/string_list.h>
 #include <lists/dir_list.h>
+#include <playlist.h>
 
 #include "../../menu_driver.h"
 #include "../../menu_hash.h"
@@ -39,12 +40,12 @@ static struct string_list *files  = NULL;
 
 static struct nk_panel left_col;
 static struct nk_panel right_col;
-
+playlist_t *tmp_playlist = NULL;
 
 void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height)
 {
    unsigned i;
-   char buf[PATH_MAX_LENGTH];
+   static char buf[PATH_MAX_LENGTH];
    video_shader_ctx_t shader_info;
    struct nk_panel layout;
 
@@ -57,7 +58,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
 
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height), 0))
    {
-      nk_layout_row(ctx, NK_DYNAMIC, 600, 2, ratio);
+      nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       if (nk_group_begin(ctx, &left_col, "Playlists", 0))
       {
          nk_layout_row_dynamic(ctx, 30, 1);
@@ -70,6 +71,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
             if (nk_button_label(ctx, path_basename(buf), NK_BUTTON_DEFAULT))
             {
                RARCH_LOG ("do stuff\n");
+               tmp_playlist = playlist_init(files->elems[i].data, 100);;
             }
          }
          nk_group_end(ctx);
@@ -78,6 +80,16 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       {
          nk_layout_row_dynamic(ctx, 30, 1);
          nk_label(ctx,"Content", NK_TEXT_LEFT);
+         for (i = 0; i < playlist_size(tmp_playlist); i++)
+         {
+            const char *entry_path;
+            const char *entry_label;
+            playlist_get_index(tmp_playlist, i, &entry_path, &entry_label, NULL, NULL, NULL, NULL);
+            if (nk_button_label(ctx, entry_label, NK_BUTTON_DEFAULT))
+            {
+               RARCH_LOG ("do stuff\n");
+            }
+         }
          nk_group_end(ctx);
       }
    }
