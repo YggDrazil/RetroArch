@@ -40,6 +40,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    video_shader_ctx_t shader_info;
    struct nk_panel layout;
    struct nk_panel left_col;
+   struct nk_panel right_col;
    struct nk_context *ctx = &nk->ctx;
    const int id           = NK_WND_MAIN;
    settings_t *settings  = config_get_ptr();
@@ -74,13 +75,15 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       {
          nk_layout_row_dynamic(ctx, 30, 1);
          nk_label(ctx,"Playlists", NK_TEXT_LEFT);
-         nk_button_label(ctx, "Super Nintendo", NK_BUTTON_DEFAULT);
+         unsigned i = 0;
+         for (i = 0; i < 30; i++)
+            nk_button_label(ctx, "Super Nintendo", NK_BUTTON_DEFAULT);
          nk_group_end(ctx);
       }
-      if (nk_group_begin(ctx, &left_col, "", 0))
+      if (nk_group_begin(ctx, &right_col, "", 0))
       {
          nk_layout_row_dynamic(ctx, 30, 1);
-         nk_label(ctx,"Playlists", NK_TEXT_LEFT);
+         nk_label(ctx,"Content", NK_TEXT_LEFT);
          nk_group_end(ctx);
       }
    }
