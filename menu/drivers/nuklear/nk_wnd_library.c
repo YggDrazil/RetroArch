@@ -42,36 +42,12 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    struct nk_panel left_col;
    struct nk_panel right_col;
    struct nk_context *ctx = &nk->ctx;
-   const int id           = NK_WND_MAIN;
-   settings_t *settings  = config_get_ptr();
-
-   static char picker_filter[PATH_MAX_LENGTH];
-   static char picker_title[PATH_MAX_LENGTH];
-   static char* picker_startup_dir;
-
-   int len_core, len_content = 0;
-
-   if (!out)
-      out = &core;
-
-   if (!string_is_empty(core))
-      len_core = strlen(path_basename(core));
-   if (!string_is_empty(content))
-      len_content = strlen(content);
-
-   if (nk->window[NK_WND_FILE_PICKER].open)
-   {
-      if (nk_wnd_file_picker(nk, picker_title, picker_startup_dir, out, picker_filter))
-      {
-         RARCH_LOG ("%s selected\n", out);
-         nk_window_close(&nk->ctx, picker_title);
-      }
-   }
+   const int id           = NK_WND_LIBRARY;
 
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height), 0))
    {
-      nk_layout_row(ctx, NK_DYNAMIC, 300, 2, ratio);
-      if (nk_group_begin(ctx, &left_col, "", 0))
+      nk_layout_row(ctx, NK_DYNAMIC, 600, 2, ratio);
+      if (nk_group_begin(ctx, &left_col, "Playlists", 0))
       {
          nk_layout_row_dynamic(ctx, 30, 1);
          nk_label(ctx,"Playlists", NK_TEXT_LEFT);
@@ -80,7 +56,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
             nk_button_label(ctx, "Super Nintendo", NK_BUTTON_DEFAULT);
          nk_group_end(ctx);
       }
-      if (nk_group_begin(ctx, &right_col, "", 0))
+      if (nk_group_begin(ctx, &right_col, "Content", 0))
       {
          nk_layout_row_dynamic(ctx, 30, 1);
          nk_label(ctx,"Content", NK_TEXT_LEFT);
