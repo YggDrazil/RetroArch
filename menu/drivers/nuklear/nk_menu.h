@@ -97,6 +97,6 @@ void nk_wnd_set_state(nk_menu_handle_t *nk, const int id,
 void nk_wnd_get_state(nk_menu_handle_t *nk, const int id,
    struct nk_vec2 *pos, struct nk_vec2 *size);
 
-void nk_wnd_library(nk_menu_handle_t *nk, const char* title);
+void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height);
 
 #endif
