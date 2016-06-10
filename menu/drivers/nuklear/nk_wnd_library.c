@@ -35,12 +35,29 @@ static char* out;
 static char core[PATH_MAX_LENGTH] = {0};
 static char content[PATH_MAX_LENGTH] = {0};
 static float ratio[] = {0.3f, 0.7f};
+static bool playlist_icons_loaded;
 
 static struct string_list *files  = NULL;
 
 static struct nk_panel left_col;
 static struct nk_panel right_col;
 playlist_t *tmp_playlist = NULL;
+
+struct nk_image icons[100];
+
+static void load_icons(nk_menu_handle_t *nk, const char* icon, unsigned index)
+{
+   char buf[PATH_MAX_LENGTH] = {0};
+   settings_t *settings = config_get_ptr();
+
+   fill_pathname_join(buf, settings->directory.assets, "xmb", sizeof(buf));
+   fill_pathname_join(buf, buf, "retroactive", sizeof(buf));
+   fill_pathname_join(buf, buf, "png", sizeof(buf));
+   fill_pathname_join(buf, buf, icon, sizeof(buf));
+   snprintf(buf, sizeof(buf), "%s.png",buf);
+
+   icons[index] = nk_common_image_load(buf);
+}
 
 void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height)
 {
@@ -61,19 +78,23 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       if (nk_group_begin(ctx, &left_col, "Playlists", 0))
       {
-         nk_layout_row_dynamic(ctx, 30, 1);
+         nk_layout_row_dynamic(ctx, 64, 1);
          nk_label(ctx,"Playlists", NK_TEXT_LEFT);
 
          for (i = 0; i < files->size; i++)
          {
             strlcpy(buf, files->elems[i].data, sizeof(buf));
             path_remove_extension(buf);
-            if (nk_button_label(ctx, path_basename(buf), NK_BUTTON_DEFAULT))
+            if (!playlist_icons_loaded)
+               load_icons(nk, path_basename(buf), i);
+            if (nk_button_image_label(ctx, icons[i], path_basename(buf),
+               NK_TEXT_CENTERED, NK_BUTTON_DEFAULT))
             {
                RARCH_LOG ("do stuff\n");
                tmp_playlist = playlist_init(files->elems[i].data, 100);;
             }
          }
+         playlist_icons_loaded = true;
          nk_group_end(ctx);
       }
       if (nk_group_begin(ctx, &right_col, "Content", 0))
