@@ -34,7 +34,7 @@ static char core[PATH_MAX_LENGTH] = {0};
 static char content[PATH_MAX_LENGTH] = {0};
 static float ratio[] = {0.85f, 0.15f};
 
-void nk_wnd_main(nk_menu_handle_t *nk, const char* title)
+void nk_wnd_library(nk_menu_handle_t *nk, const char* title)
 {
    unsigned i;
    video_shader_ctx_t shader_info;
@@ -67,7 +67,7 @@ void nk_wnd_main(nk_menu_handle_t *nk, const char* title)
    }
 
 
-   if (nk_begin(ctx, &layout, title, nk_rect(240, 10, 600, 400),
+   if (nk_begin(ctx, &layout, title, nk_rect(240, 10, 100, 100),
          NK_WINDOW_CLOSABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_MOVABLE|
          NK_WINDOW_SCALABLE|NK_WINDOW_BORDER))
    {

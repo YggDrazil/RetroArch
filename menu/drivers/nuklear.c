@@ -61,6 +61,8 @@ static void nk_menu_main(nk_menu_handle_t *nk)
       nk_wnd_shader_parameters(nk);
    if (nk->window[NK_WND_MAIN].open)
       nk_wnd_main(nk, "Demo");
+      if (nk->window[NK_WND_LIBRARY].open)
+         nk_wnd_library(nk, "Library");
 
    nk_buffer_info(&nk->status, &nk->ctx.memory);
 }
@@ -296,6 +298,7 @@ static void *nk_menu_init(void **userdata)
          nk->window[i].open = true;
 #else
       nk->window[NK_WND_MAIN].open = true;
+      nk->window[NK_WND_LIBRARY].open = true;
 #endif
 
    return menu;

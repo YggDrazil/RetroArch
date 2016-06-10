@@ -930,6 +930,7 @@ MENU
 #include "../menu/drivers/nuklear/nk_wnd_file_picker.c"
 #include "../menu/drivers/nuklear/nk_wnd_settings.c"
 #include "../menu/drivers/nuklear/nk_wnd_main.c"
+#include "../menu/drivers/nuklear/nk_wnd_library.c"
 #include "../menu/drivers/nuklear.c"
 #endif
 
