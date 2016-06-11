@@ -163,4 +163,7 @@ void nk_common_set_style(struct nk_context *ctx, enum theme theme)
     } else {
         nk_style_default(ctx);
     }
+
+    /* buttons square by default */
+    ctx->style.button.rounding = 0.0f;
 }
