@@ -31,21 +31,42 @@
 #include "../../menu_driver.h"
 #include "../../menu_hash.h"
 
-static char* out;
-static char core[PATH_MAX_LENGTH] = {0};
-static char content[PATH_MAX_LENGTH] = {0};
 static float ratio[] = {0.3f, 0.7f};
+
 static bool playlist_icons_loaded;
-
+static bool generic_icons_loaded;
 static struct string_list *files  = NULL;
+static playlist_t *tmp_playlist = NULL;
 
-static struct nk_panel left_col;
-static struct nk_panel right_col;
-playlist_t *tmp_playlist = NULL;
+struct nk_image playlist_icons[100];
 
-struct nk_image icons[100];
+struct generic_icons
+{
+    struct nk_image disk;
+    struct nk_image folder;
+    struct nk_image file;
+};
 
-static void load_icons(nk_menu_handle_t *nk, const char* icon, unsigned index)
+struct generic_icons icons;
+
+static void load_icons(nk_menu_handle_t *nk)
+{
+   char buf[PATH_MAX_LENGTH] = {0};
+
+   fill_pathname_join(buf, nk->assets_directory,
+         "harddisk.png", sizeof(buf));
+   icons.disk = nk_common_image_load(buf);
+   fill_pathname_join(buf, nk->assets_directory,
+         "folder.png", sizeof(buf));
+   icons.folder = nk_common_image_load(buf);
+   fill_pathname_join(buf, nk->assets_directory,
+         "file.png", sizeof(buf));
+   icons.file = nk_common_image_load(buf);
+
+   generic_icons_loaded = true;
+}
+
+static void load_playlist_icons(nk_menu_handle_t *nk, const char* icon, unsigned index)
 {
    char buf[PATH_MAX_LENGTH] = {0};
    settings_t *settings = config_get_ptr();
@@ -56,19 +77,22 @@ static void load_icons(nk_menu_handle_t *nk, const char* icon, unsigned index)
    fill_pathname_join(buf, buf, icon, sizeof(buf));
    snprintf(buf, sizeof(buf), "%s.png",buf);
 
-   icons[index] = nk_common_image_load(buf);
+   playlist_icons[index] = nk_common_image_load(buf);
 }
 
 void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height)
 {
    unsigned i;
    static char buf[PATH_MAX_LENGTH];
-   video_shader_ctx_t shader_info;
+   static struct nk_panel left_col;
+   static struct nk_panel right_col;
    struct nk_panel layout;
 
    struct nk_context *ctx = &nk->ctx;
    const int id  = NK_WND_LIBRARY;
    settings_t *settings = config_get_ptr();
+
+   load_icons(nk);
 
    if (!files)
       files = dir_list_new(settings->directory.playlist, "lpl", true, true);
@@ -76,37 +100,32 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height), 0))
    {
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
-      if (nk_group_begin(ctx, &left_col, "Playlists", 0))
+      nk_group_begin(ctx, &left_col, "Playlists", 0);
       {
-         nk_layout_row_dynamic(ctx, 64, 1);
-         nk_label(ctx,"Playlists", NK_TEXT_LEFT);
+         nk_layout_row_dynamic(ctx, 32, 1);
 
          for (i = 0; i < files->size; i++)
          {
             strlcpy(buf, files->elems[i].data, sizeof(buf));
             path_remove_extension(buf);
             if (!playlist_icons_loaded)
-               load_icons(nk, path_basename(buf), i);
-            if (nk_button_image_label(ctx, icons[i], path_basename(buf),
+               load_playlist_icons(nk, path_basename(buf), i);
+            if (nk_button_image_label(ctx, playlist_icons[i], path_basename(buf),
                NK_TEXT_CENTERED, NK_BUTTON_DEFAULT))
-            {
-               RARCH_LOG ("do stuff\n");
                tmp_playlist = playlist_init(files->elems[i].data, 100);;
-            }
          }
          playlist_icons_loaded = true;
          nk_group_end(ctx);
       }
-      if (nk_group_begin(ctx, &right_col, "Content", 0))
+      nk_group_begin(ctx, &right_col, "Content", 0);
       {
-         nk_layout_row_dynamic(ctx, 30, 1);
-         nk_label(ctx,"Content", NK_TEXT_LEFT);
+         nk_layout_row_dynamic(ctx, 128, 2);
          for (i = 0; i < playlist_size(tmp_playlist); i++)
          {
             const char *entry_path;
             const char *entry_label;
             playlist_get_index(tmp_playlist, i, &entry_path, &entry_label, NULL, NULL, NULL, NULL);
-            if (nk_button_label(ctx, entry_label, NK_BUTTON_DEFAULT))
+            if (nk_button_image_label(ctx, icons.file, entry_label, NK_TEXT_CENTERED, NK_BUTTON_DEFAULT))
             {
                RARCH_LOG ("do stuff\n");
             }
