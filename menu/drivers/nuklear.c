@@ -53,6 +53,7 @@ static void nk_menu_main(nk_menu_handle_t *nk)
 {
 
    struct nk_context *ctx = &nk->ctx;
+   unsigned width, height;
 
    if (nk->window[NK_WND_SETTINGS].open)
       nk_wnd_settings(nk);
@@ -61,6 +62,11 @@ static void nk_menu_main(nk_menu_handle_t *nk)
       nk_wnd_shader_parameters(nk);
    if (nk->window[NK_WND_MAIN].open)
       nk_wnd_main(nk, "Demo");
+   if (nk->window[NK_WND_LIBRARY].open)
+      {
+         video_driver_get_size(&width, &height);
+         nk_wnd_library(nk, "Library", width, height);
+      }
 
    nk_buffer_info(&nk->status, &nk->ctx.memory);
 }
@@ -261,7 +267,7 @@ static void nk_menu_init_device(nk_menu_handle_t *nk)
    nk->icons.page_off = nk_common_image_load(buf);
 
    nk->size_changed = true;
-   nk_common_set_style(&nk->ctx, THEME_BLUE);
+   nk_common_set_style(&nk->ctx, THEME_DARK);
 }
 
 static void *nk_menu_init(void **userdata)
@@ -295,7 +301,8 @@ static void *nk_menu_init(void **userdata)
       for (int i=0; i < NK_WND_LAST; i++)
          nk->window[i].open = true;
 #else
-      nk->window[NK_WND_MAIN].open = true;
+      nk->window[NK_WND_MAIN].open = false;
+      nk->window[NK_WND_LIBRARY].open = true;
 #endif
 
    return menu;

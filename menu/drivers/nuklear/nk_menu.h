@@ -33,6 +33,7 @@ enum
 enum
 {
    NK_WND_MAIN = 0,
+   NK_WND_LIBRARY,
    NK_WND_SETTINGS,
    NK_WND_FILE_PICKER,
    NK_WND_SHADER_PARAMETERS,
@@ -85,6 +86,8 @@ typedef struct nk_menu_handle
    video_font_raster_block_t list_block;
 } nk_menu_handle_t;
 
+void nk_common_set_style(struct nk_context *ctx, enum theme theme);
+
 void nk_wnd_shader_parameters(nk_menu_handle_t *nk);
 void nk_wnd_main(nk_menu_handle_t *nk, const char* title);
 bool nk_wnd_file_picker(nk_menu_handle_t *nk, char* title, char* in, char* out, char* filter);
@@ -93,6 +96,7 @@ void nk_wnd_set_state(nk_menu_handle_t *nk, const int id,
    struct nk_vec2 pos, struct nk_vec2 size);
 void nk_wnd_get_state(nk_menu_handle_t *nk, const int id,
    struct nk_vec2 *pos, struct nk_vec2 *size);
-void nk_common_set_style(struct nk_context *ctx, enum theme theme);
+
+void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, unsigned height);
 
 #endif

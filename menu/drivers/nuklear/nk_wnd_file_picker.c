@@ -44,7 +44,7 @@ struct icon_list
 
 struct icon_list icons;
 
-void load_icons(nk_menu_handle_t *nk)
+static void load_icons(nk_menu_handle_t *nk)
 {
    char buf[PATH_MAX_LENGTH] = {0};
 
