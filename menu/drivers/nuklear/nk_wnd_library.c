@@ -97,7 +97,8 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    if (!files)
       files = dir_list_new(settings->directory.playlist, "lpl", true, true);
 
-   if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height), 0))
+   if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height),
+         NK_WINDOW_NO_SCROLLBAR))
    {
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       nk_group_begin(ctx, &left_col, "Playlists", 0);
