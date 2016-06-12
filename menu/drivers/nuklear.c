@@ -128,10 +128,24 @@ static void nk_menu_input_keyboard(struct nk_context *ctx)
       nk_input_char(ctx, '1');
 }
 
-static void nk_menu_context_reset_textures(nk_menu_handle_t *nk,
-      const char *iconpath)
+static void nk_menu_context_reset_textures(nk_menu_handle_t *nk)
 {
-   unsigned i;
+   char path[PATH_MAX_LENGTH] = {0};
+   char buf[PATH_MAX_LENGTH] = {0};
+   unsigned i = 0;
+
+   fill_pathname_application_special(path, sizeof(path),
+         APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS);
+
+   fill_pathname_join(buf, path,
+         "disk.png", sizeof(buf));
+   nk->icons.disk = nk_common_image_load(buf);
+   fill_pathname_join(buf, path,
+         "folder.png", sizeof(buf));
+   nk->icons.folder = nk_common_image_load(buf);
+   fill_pathname_join(buf, path,
+         "file.png", sizeof(buf));
+   nk->icons.file = nk_common_image_load(buf);
 
    for (i = 0; i < NK_TEXTURE_LAST; i++)
    {
@@ -141,19 +155,19 @@ static void nk_menu_context_reset_textures(nk_menu_handle_t *nk,
       switch(i)
       {
          case NK_TEXTURE_POINTER:
-            fill_pathname_join(path, iconpath,
-                  "pointer.png", sizeof(path));
+            fill_pathname_join(buf, path,
+                  "pointer.png", sizeof(buf));
             break;
       }
 
-      if (string_is_empty(path) || !path_file_exists(path))
+      if (string_is_empty(buf) || !path_file_exists(buf))
          continue;
 
-      image_texture_load(&ti, path);
+      image_texture_load(&ti, buf);
       video_driver_texture_load(&ti,
             TEXTURE_FILTER_MIPMAP_LINEAR, &nk->textures.list[i]);
 
-      image_texture_load(&ti, path);
+      image_texture_load(&ti, buf);
    }
 }
 
@@ -332,26 +346,20 @@ static void nk_menu_context_destroy(void *data)
 
 static void nk_menu_context_reset(void *data)
 {
-   char iconpath[PATH_MAX_LENGTH] = {0};
    nk_menu_handle_t *nk           = (nk_menu_handle_t*)data;
    settings_t *settings           = config_get_ptr();
    unsigned width                 = 0;
    unsigned height                = 0;
 
    video_driver_get_size(&width, &height);
-
    if (!nk || !settings)
       return;
-
-   fill_pathname_join(iconpath, settings->directory.assets,
-         "nuklear", sizeof(iconpath));
-   fill_pathname_slash(iconpath, sizeof(iconpath));
 
    nk_menu_layout(nk);
    nk_menu_init_device(nk);
 
    wimp_context_bg_destroy(nk);
-   nk_menu_context_reset_textures(nk, iconpath);
+   nk_menu_context_reset_textures(nk);
 
    task_push_image_load(settings->path.menu_wallpaper, "cb_menu_wallpaper",
          menu_display_handle_wallpaper_upload, NULL);

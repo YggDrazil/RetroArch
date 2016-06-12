@@ -34,39 +34,11 @@
 static float ratio[] = {0.3f, 0.7f};
 
 static bool playlist_icons_loaded;
-static bool generic_icons_loaded;
+
 static struct string_list *files  = NULL;
 static playlist_t *tmp_playlist = NULL;
 
 struct nk_image playlist_icons[100];
-
-struct generic_icons
-{
-    struct nk_image disk;
-    struct nk_image folder;
-    struct nk_image file;
-};
-
-struct generic_icons icons;
-
-static void load_icons(nk_menu_handle_t *nk)
-{
-   char path[PATH_MAX_LENGTH] = {0};
-   char buf[PATH_MAX_LENGTH] = {0};
-
-   fill_pathname_application_special(path, sizeof(path),
-         APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS);
-
-   fill_pathname_join(buf, path,
-         "disk.png", sizeof(buf));
-   icons.disk = nk_common_image_load(buf);
-   fill_pathname_join(buf, path,
-         "folder.png", sizeof(buf));
-   icons.folder = nk_common_image_load(buf);
-   fill_pathname_join(buf, path,
-         "file.png", sizeof(buf));
-   icons.file = nk_common_image_load(buf);
-}
 
 static void load_playlist_icons(nk_menu_handle_t *nk, const char* icon, unsigned index)
 {
@@ -92,12 +64,6 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    struct nk_context *ctx = &nk->ctx;
    const int id  = NK_WND_LIBRARY;
    settings_t *settings = config_get_ptr();
-
-   if (!generic_icons_loaded)
-   {
-      load_icons(nk);
-      generic_icons_loaded = true;
-   }
 
    if (!files)
       files = dir_list_new(settings->directory.playlist, "lpl", true, true);
@@ -131,7 +97,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
             const char *entry_path;
             const char *entry_label;
             playlist_get_index(tmp_playlist, i, &entry_path, &entry_label, NULL, NULL, NULL, NULL);
-            if (nk_button_image_label(ctx, icons.file, entry_label, NK_TEXT_CENTERED, NK_BUTTON_DEFAULT))
+            if (nk_button_image_label(ctx, nk->icons.file, entry_label, NK_TEXT_CENTERED, NK_BUTTON_DEFAULT))
             {
                RARCH_LOG ("do stuff\n");
             }

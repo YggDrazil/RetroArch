@@ -40,15 +40,11 @@ enum
    NK_WND_LAST
 };
 
-struct icons {
+struct generic_icons
+{
+    struct nk_image disk;
     struct nk_image folder;
-    struct nk_image monitor;
-    struct nk_image gamepad;
-    struct nk_image settings;
-    struct nk_image speaker;
-    struct nk_image invader;
-    struct nk_image page_on;
-    struct nk_image page_off;
+    struct nk_image file;
 };
 
 struct window {
@@ -75,7 +71,7 @@ typedef struct nk_menu_handle
 
    /* image & theme related variables */
    char assets_directory[PATH_MAX_LENGTH];
-   struct icons icons;
+   struct generic_icons icons;
 
    struct
    {
