@@ -150,25 +150,21 @@ static void nk_menu_context_reset_textures(nk_menu_handle_t *nk)
    for (i = 0; i < NK_TEXTURE_LAST; i++)
    {
       struct texture_image ti     = {0};
-      char path[PATH_MAX_LENGTH]  = {0};
 
       switch(i)
       {
          case NK_TEXTURE_POINTER:
             fill_pathname_join(buf, path,
                   "pointer.png", sizeof(buf));
-            RARCH_LOG ("path %s\n%s\n", buf, path);
             break;
       }
 
-      if (string_is_empty(buf) || !path_file_exists(buf))
-         continue;
-
+      RARCH_LOG("Loading textures: %s\n", buf);
       image_texture_load(&ti, buf);
       video_driver_texture_load(&ti,
             TEXTURE_FILTER_MIPMAP_LINEAR, &nk->textures.list[i]);
-
       image_texture_load(&ti, buf);
+
    }
 }
 
