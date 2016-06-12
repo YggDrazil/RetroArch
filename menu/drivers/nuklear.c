@@ -246,26 +246,7 @@ static void nk_menu_init_device(nk_menu_handle_t *nk)
    nk_font_atlas_end(&atlas, nk_handle_id((int)device.font_tex), &device.null);
    nk_init_default(&nk->ctx, &font->handle);
 
-   //nk_init(&nk->ctx, &nk_alloc, &usrfnt);
    nk_common_device_init(&device);
-
-   fill_pathname_join(buf, nk->assets_directory, "folder.png", sizeof(buf));
-   nk->icons.folder = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "speaker.png", sizeof(buf));
-   nk->icons.speaker = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "gamepad.png", sizeof(buf));
-   nk->icons.gamepad = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "monitor.png", sizeof(buf));
-   nk->icons.monitor = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "settings.png", sizeof(buf));
-   nk->icons.settings = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "invader.png", sizeof(buf));
-   nk->icons.invader = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "page_on.png", sizeof(buf));
-   nk->icons.page_on = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory, "page_off.png", sizeof(buf));
-   nk->icons.page_off = nk_common_image_load(buf);
-
    nk->size_changed = true;
    nk_common_set_style(&nk->ctx, THEME_DARK);
 }
@@ -292,8 +273,8 @@ static void *nk_menu_init(void **userdata)
       goto error;
 
    *userdata = nk;
-   fill_pathname_join(nk->assets_directory, settings->directory.assets,
-         "nuklear", sizeof(nk->assets_directory));
+   fill_pathname_application_special(nk->assets_directory, sizeof(nk->assets_directory),
+         APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR);
    nk_menu_init_device(nk);
 
    /* for demo puposes only, opens all windows */ 

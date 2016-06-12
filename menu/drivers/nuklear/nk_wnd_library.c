@@ -51,32 +51,33 @@ struct generic_icons icons;
 
 static void load_icons(nk_menu_handle_t *nk)
 {
+   char path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH] = {0};
 
-   fill_pathname_join(buf, nk->assets_directory,
-         "harddisk.png", sizeof(buf));
+   fill_pathname_application_special(path, sizeof(path),
+         APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS);
+
+   fill_pathname_join(buf, path,
+         "disk.png", sizeof(buf));
    icons.disk = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory,
+   fill_pathname_join(buf, path,
          "folder.png", sizeof(buf));
    icons.folder = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory,
+   fill_pathname_join(buf, path,
          "file.png", sizeof(buf));
    icons.file = nk_common_image_load(buf);
-
-   generic_icons_loaded = true;
 }
 
 static void load_playlist_icons(nk_menu_handle_t *nk, const char* icon, unsigned index)
 {
+   char path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH] = {0};
-   settings_t *settings = config_get_ptr();
 
-   fill_pathname_join(buf, settings->directory.assets, "xmb", sizeof(buf));
-   fill_pathname_join(buf, buf, "retroactive", sizeof(buf));
-   fill_pathname_join(buf, buf, "png", sizeof(buf));
-   fill_pathname_join(buf, buf, icon, sizeof(buf));
+   fill_pathname_application_special(path, sizeof(path),
+         APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS);
+
+   fill_pathname_join(buf, path, icon, sizeof(buf));
    snprintf(buf, sizeof(buf), "%s.png",buf);
-
    playlist_icons[index] = nk_common_image_load(buf);
 }
 
@@ -92,7 +93,11 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    const int id  = NK_WND_LIBRARY;
    settings_t *settings = config_get_ptr();
 
-   load_icons(nk);
+   if (!generic_icons_loaded)
+   {
+      load_icons(nk);
+      generic_icons_loaded = true;
+   }
 
    if (!files)
       files = dir_list_new(settings->directory.playlist, "lpl", true, true);
@@ -103,7 +108,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       nk_group_begin(ctx, &left_col, "Playlists", 0);
       {
-         nk_layout_row_dynamic(ctx, 32, 1);
+         nk_layout_row_dynamic(ctx, 64, 1);
 
          for (i = 0; i < files->size; i++)
          {

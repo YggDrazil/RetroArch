@@ -46,19 +46,21 @@ struct icon_list icons;
 
 static void load_icons(nk_menu_handle_t *nk)
 {
+   char path[PATH_MAX_LENGTH] = {0};
    char buf[PATH_MAX_LENGTH] = {0};
 
-   fill_pathname_join(buf, nk->assets_directory,
-         "harddisk.png", sizeof(buf));
+   fill_pathname_application_special(path, sizeof(path),
+         APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS);
+
+   fill_pathname_join(buf, path,
+         "disk.png", sizeof(buf));
    icons.disk = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory,
+   fill_pathname_join(buf, path,
          "folder.png", sizeof(buf));
    icons.folder = nk_common_image_load(buf);
-   fill_pathname_join(buf, nk->assets_directory,
+   fill_pathname_join(buf, path,
          "file.png", sizeof(buf));
    icons.file = nk_common_image_load(buf);
-
-   assets_loaded = true;
 }
 
 bool nk_wnd_file_picker(nk_menu_handle_t *nk, char* title, char* in, char* out, char* filter)
@@ -85,7 +87,10 @@ bool nk_wnd_file_picker(nk_menu_handle_t *nk, char* title, char* in, char* out, 
    }
 
    if (!assets_loaded)
+   {
       load_icons(nk);
+      assets_loaded = true;
+   }
 
    if (nk_begin(ctx, &layout, title, nk_rect(10, 10, 500, 400),
          NK_WINDOW_CLOSABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_MOVABLE|

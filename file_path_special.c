@@ -369,6 +369,35 @@ void fill_pathname_application_special(char *s, size_t len, enum application_spe
          }
 #endif
          break;
+         case APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR:
+#ifdef HAVE_NUKLEAR
+            {
+               char s1[PATH_MAX_LENGTH] = {0};
+               settings_t *settings     = config_get_ptr();
+
+               fill_pathname_join(
+                     s1,
+                     settings->directory.assets,
+                     "nuklear",
+                     sizeof(s1));
+               strlcpy(s, s1, len);
+            }
+#endif
+            break;
+      case APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS:
+#ifdef HAVE_NUKLEAR
+         {
+            char s1[PATH_MAX_LENGTH] = {0};
+            char s2[PATH_MAX_LENGTH] = {0};
+            fill_pathname_application_special(s1, sizeof(s1),
+                  APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR);
+            fill_pathname_join(s2, s1, "png",
+                  sizeof(s2));
+            fill_pathname_slash(s2, sizeof(s2));
+            strlcpy(s, s2, len);
+         }
+#endif
+      break;
       case APPLICATION_SPECIAL_DIRECTORY_ASSETS_MATERIALUI:
 #ifdef HAVE_MATERIALUI
          {
