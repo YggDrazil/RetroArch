@@ -60,6 +60,7 @@ typedef struct nk_menu_handle
    struct nk_context ctx;
    struct nk_memory_status status;
    enum menu_action action;
+   bool context_reset;
 
    /* window control variables */
    struct nk_vec2 size;

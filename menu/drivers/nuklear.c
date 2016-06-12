@@ -229,6 +229,11 @@ static void nk_menu_frame(void *data)
 
    menu_display_restore_clear_color();
    menu_display_unset_viewport();
+
+   if (nk->context_reset)
+   {
+      nk->context_reset = false;
+   }
 }
 
 static void nk_menu_layout(nk_menu_handle_t *nk)
@@ -357,6 +362,8 @@ static void nk_menu_context_reset(void *data)
 
    wimp_context_bg_destroy(nk);
    nk_menu_context_reset_textures(nk);
+
+   nk->context_reset = true;
 
    task_push_image_load(settings->path.menu_wallpaper, "cb_menu_wallpaper",
          menu_display_handle_wallpaper_upload, NULL);

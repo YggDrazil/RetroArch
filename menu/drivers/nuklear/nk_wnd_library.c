@@ -80,7 +80,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
          {
             strlcpy(buf, files->elems[i].data, sizeof(buf));
             path_remove_extension(buf);
-            if (!playlist_icons_loaded)
+            if (!playlist_icons_loaded || nk->context_reset)
                load_playlist_icons(nk, path_basename(buf), i);
             if (nk_button_image_label(ctx, playlist_icons[i], path_basename(buf),
                NK_TEXT_CENTERED, NK_BUTTON_DEFAULT))
