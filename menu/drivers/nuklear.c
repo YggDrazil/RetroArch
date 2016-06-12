@@ -157,6 +157,7 @@ static void nk_menu_context_reset_textures(nk_menu_handle_t *nk)
          case NK_TEXTURE_POINTER:
             fill_pathname_join(buf, path,
                   "pointer.png", sizeof(buf));
+            RARCH_LOG ("path %s\n%s\n", buf, path);
             break;
       }
 
