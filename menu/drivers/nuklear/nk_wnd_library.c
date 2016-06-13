@@ -65,12 +65,34 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    const int id  = NK_WND_LIBRARY;
    settings_t *settings = config_get_ptr();
 
+   struct nk_style *style;
+   struct nk_style_button *button;
+   struct nk_style_window *window;
+   style = &ctx->style;
+   button = &style->button;
+   window = &style->window;
+
    if (!files)
       files = dir_list_new(settings->directory.playlist, "lpl", true, true);
+
+   window->padding = nk_vec2(0,0);
+   window->spacing = nk_vec2(0,0);
+   window->group_border_color = nk_rgba(62,62,62,255);
 
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height),
          NK_WINDOW_NO_SCROLLBAR))
    {
+      window->padding = nk_vec2(0,0);
+      window->spacing = nk_vec2(0,0);
+      window->fixed_background = nk_style_item_color(nk_rgba(67,67,67,255));
+      window->group_border_color = nk_rgba(67,67,67,255);
+      button->normal = nk_style_item_color(nk_rgba(67,67,67,255));
+      button->hover = nk_style_item_color(nk_rgba(92,91,223,255));
+      button->border_color = nk_rgba(67,67,67,255);
+      button->border = 0.0f;
+      button->text_normal = nk_rgba(230,229,229,255);
+      button->text_hover = nk_rgba(255,255,255,255);
+
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       nk_group_begin(ctx, &left_col, "Playlists", 0);
       {
@@ -89,6 +111,15 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
          playlist_icons_loaded = true;
          nk_group_end(ctx);
       }
+
+      window->padding = nk_vec2(8,8);
+      window->spacing = nk_vec2(4,4);
+      window->fixed_background = nk_style_item_color(nk_rgba(62,62,62,255));
+      window->group_border_color = nk_rgba(62,62,62,255);
+      button->normal = nk_style_item_color(nk_rgba(62,62,62,255));
+      button->border_color = nk_rgba(62,62,62,255) ;
+      button->border = 0.0f;
+
       nk_group_begin(ctx, &right_col, "Content", 0);
       {
          nk_layout_row_dynamic(ctx, 128, 2);
