@@ -74,7 +74,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       nk_group_begin(ctx, &left_col, "Playlists", 0);
       {
-         nk_layout_row_dynamic(ctx, 40, 1);
+         nk_layout_row_dynamic(ctx, 24, 1);
 
          for (i = 0; i < files->size; i++)
          {
