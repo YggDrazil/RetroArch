@@ -31,7 +31,7 @@
 #include "../../menu_driver.h"
 #include "../../menu_hash.h"
 
-static float ratio[] = {0.3f, 0.7f};
+static float ratio[] = {0.25f, 0.75f};
 
 static bool playlist_icons_loaded;
 
@@ -78,6 +78,8 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
    window->padding = nk_vec2(0,0);
    window->spacing = nk_vec2(0,0);
    window->group_border_color = nk_rgba(62,62,62,255);
+   window->fixed_background = nk_style_item_color(nk_rgba(46,47,47,255));
+   button->border = 0.0f;
 
    if (nk_begin(ctx, &layout, title, nk_rect(0, 0, width, height),
          NK_WINDOW_NO_SCROLLBAR))
@@ -85,16 +87,15 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       window->padding = nk_vec2(0,0);
       window->spacing = nk_vec2(0,0);
       window->fixed_background = nk_style_item_color(nk_rgba(67,67,67,255));
-      window->group_border_color = nk_rgba(67,67,67,255);
       button->normal = nk_style_item_color(nk_rgba(67,67,67,255));
       button->hover = nk_style_item_color(nk_rgba(92,91,223,255));
       button->border_color = nk_rgba(67,67,67,255);
-      button->border = 0.0f;
       button->text_normal = nk_rgba(230,229,229,255);
       button->text_hover = nk_rgba(255,255,255,255);
 
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
-      nk_group_begin(ctx, &left_col, "Playlists", 0);
+
+      nk_group_begin(ctx, &left_col, "Playlists", NK_WINDOW_NO_SCROLLBAR);
       {
          nk_layout_row_dynamic(ctx, 24, 1);
 
@@ -112,16 +113,15 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
          nk_group_end(ctx);
       }
 
-      window->padding = nk_vec2(8,8);
-      window->spacing = nk_vec2(4,4);
       window->fixed_background = nk_style_item_color(nk_rgba(62,62,62,255));
-      window->group_border_color = nk_rgba(62,62,62,255);
       button->normal = nk_style_item_color(nk_rgba(62,62,62,255));
       button->border_color = nk_rgba(62,62,62,255) ;
-      button->border = 0.0f;
 
       nk_group_begin(ctx, &right_col, "Content", 0);
       {
+         window->padding = nk_vec2(8,8);
+         window->spacing = nk_vec2(4,4);
+
          nk_layout_row_dynamic(ctx, 128, 2);
          for (i = 0; i < playlist_size(tmp_playlist); i++)
          {
