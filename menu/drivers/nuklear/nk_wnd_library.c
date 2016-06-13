@@ -49,7 +49,7 @@ static void load_playlist_icons(nk_menu_handle_t *nk, const char* icon, unsigned
          APPLICATION_SPECIAL_DIRECTORY_ASSETS_NUKLEAR_ICONS);
 
    fill_pathname_join(buf, path, icon, sizeof(buf));
-   snprintf(buf, sizeof(buf), "%s.png",buf);
+   strlcat(buf, ".png", sizeof(buf));
    playlist_icons[index] = nk_common_image_load(buf);
 }
 
@@ -74,7 +74,7 @@ void nk_wnd_library(nk_menu_handle_t *nk, const char* title, unsigned width, uns
       nk_layout_row(ctx, NK_DYNAMIC, height, 2, ratio);
       nk_group_begin(ctx, &left_col, "Playlists", 0);
       {
-         nk_layout_row_dynamic(ctx, 64, 1);
+         nk_layout_row_dynamic(ctx, 40, 1);
 
          for (i = 0; i < files->size; i++)
          {
