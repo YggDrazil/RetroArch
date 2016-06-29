@@ -251,6 +251,9 @@ void fill_pathname_dir(char *in_dir, const char *in_basename,
  **/
 void fill_pathname_base(char *out_path, const char *in_path, size_t size);
 
+void fill_pathname_base_noext(char *out_dir,
+      const char *in_path, size_t size);
+
 /**
  * fill_pathname_basedir:
  * @out_dir            : output directory        
@@ -262,6 +265,9 @@ void fill_pathname_base(char *out_path, const char *in_path, size_t size);
  * @out_path will get path "./".
  **/
 void fill_pathname_basedir(char *out_path, const char *in_path, size_t size);
+
+void fill_pathname_basedir_noext(char *out_dir,
+      const char *in_path, size_t size);
 
 /**
  * fill_pathname_parent_dir:
@@ -303,6 +309,9 @@ void fill_pathname_resolve_relative(char *out_path, const char *in_refpath,
  **/
 void fill_pathname_join(char *out_path, const char *dir,
       const char *path, size_t size);
+
+void fill_pathname_join_noext(char *out_path,
+      const char *dir, const char *path, size_t size);
 
 /**
  * fill_string_join:
@@ -347,6 +356,9 @@ void fill_pathname_join_delim(char *out_path, const char *dir,
  *       "/path/to/myarchive.7z#folder/to/game.img" -> game.img
  */
 void fill_short_pathname_representation(char* out_rep,
+      const char *in_path, size_t size);
+
+void fill_short_pathname_representation_noext(char* out_rep,
       const char *in_path, size_t size);
 
 void fill_pathname_expand_special(char *out_path,

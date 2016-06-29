@@ -18,6 +18,10 @@
 
 #include <signal.h>
 
+#ifdef HAVE_GBM
+/* presense or absense of this include makes egl.h change NativeWindowType between gbm_device* and _XDisplay* */
+#include <gbm.h>
+#endif
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
@@ -82,7 +86,7 @@ void egl_get_video_size(egl_ctx_data_t *egl, unsigned *width, unsigned *height);
 void egl_install_sighandlers(void);
 
 bool egl_init_context(egl_ctx_data_t *egl,
-      NativeDisplayType display,
+      void *display_data,
       EGLint *major,
       EGLint *minor,
       EGLint *n,
@@ -90,7 +94,7 @@ bool egl_init_context(egl_ctx_data_t *egl,
 
 bool egl_create_context(egl_ctx_data_t *egl, const EGLint *egl_attribs);
 
-bool egl_create_surface(egl_ctx_data_t *egl, NativeWindowType native_window);
+bool egl_create_surface(egl_ctx_data_t *egl, void *native_window);
 
 bool egl_get_native_visual_id(egl_ctx_data_t *egl, EGLint *value);
 

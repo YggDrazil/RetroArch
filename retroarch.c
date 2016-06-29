@@ -75,8 +75,6 @@
 
 #ifdef HAVE_MENU
 #include "menu/menu_driver.h"
-#include "menu/menu_content.h"
-#include "menu/menu_hash.h"
 #endif
 
 #include "config.features.h"
@@ -121,56 +119,76 @@ static void retroarch_print_features(void)
 {
    puts("");
    puts("Features:");
-   _PSUPP(libretrodb, "LibretroDB", "LibretroDB support");
-   _PSUPP(command, "Command", "Command interface support");
+
+   _PSUPP(libretrodb,      "LibretroDB",      "LibretroDB support");
+   _PSUPP(command,         "Command",         "Command interface support");
    _PSUPP(network_command, "Network Command", "Network Command interface "
          "support");
-   _PSUPP(sdl, "SDL", "SDL input/audio/video drivers");
-   _PSUPP(sdl2, "SDL2", "SDL2 input/audio/video drivers");
-   _PSUPP(x11, "X11", "X11 input/video drivers");
-   _PSUPP(wayland, "wayland", "Wayland input/video drivers");
-   _PSUPP(thread, "Threads", "Threading support");
-   _PSUPP(vulkan, "Vulkan", "Vulkan driver");
-   _PSUPP(opengl, "OpenGL", "OpenGL driver");
-   _PSUPP(opengles, "OpenGL ES", "OpenGL ES driver");
-   _PSUPP(xvideo, "XVideo", "Video driver");
-   _PSUPP(udev, "UDEV", "UDEV/EVDEV input driver support");
-   _PSUPP(egl, "EGL",   "video context driver");
-   _PSUPP(kms, "KMS",   "video context driver");
-   _PSUPP(vg, "OpenVG", "video context driver");
-   _PSUPP(coreaudio, "CoreAudio", "Audio driver");
-   _PSUPP(alsa, "ALSA", "Audio driver");
-   _PSUPP(oss, "OSS", "Audio driver");
-   _PSUPP(jack, "Jack", "Audio driver");
-   _PSUPP(rsound, "RSound", "Audio driver");
-   _PSUPP(roar, "RoarAudio", "Audio driver");
-   _PSUPP(pulse, "PulseAudio", "Audio driver");
-   _PSUPP(dsound, "DirectSound", "Audio driver");
-   _PSUPP(xaudio, "XAudio2", "Audio driver");
-   _PSUPP(al, "OpenAL", "Audio driver");
-   _PSUPP(sl, "OpenSL", "Audio driver");
-   _PSUPP(7zip, "7zip", "7zip support");
-   _PSUPP(zlib, "zlib", ".zip extraction");
-   _PSUPP(dylib, "External", "External filter and plugin support");
-   _PSUPP(cg, "Cg", "Fragment/vertex shader driver");
-   _PSUPP(glsl, "GLSL", "Fragment/vertex shader driver");
-   _PSUPP(glsl, "HLSL", "Fragment/vertex shader driver");
-   _PSUPP(libxml2, "libxml2", "libxml2 XML parsing");
-   _PSUPP(sdl_image, "SDL_image", "SDL_image image loading");
-   _PSUPP(rpng, "rpng", "PNG image loading/encoding");
-   _PSUPP(rpng, "rjpeg", "JPEG image loading");
-   _PSUPP(fbo, "FBO", "OpenGL render-to-texture (multi-pass shaders)");
-   _PSUPP(dynamic, "Dynamic", "Dynamic run-time loading of libretro library");
-   _PSUPP(ffmpeg, "FFmpeg", "On-the-fly recording of gameplay with libavcodec");
-   _PSUPP(freetype, "FreeType", "TTF font rendering driver");
-   _PSUPP(coretext, "CoreText", "TTF font rendering driver (for OSX and/or iOS)");
-   _PSUPP(netplay, "Netplay", "Peer-to-peer netplay");
-   _PSUPP(python, "Python", "Script support in shaders");
-   _PSUPP(libusb, "Libusb", "Libusb support");
-   _PSUPP(cocoa, "Cocoa", "Cocoa UI companion support (for OSX and/or iOS)");
-   _PSUPP(qt, "QT", "QT UI companion support");
-   _PSUPP(avfoundation, "AVFoundation", "Camera driver");
-   _PSUPP(v4l2, "Video4Linux2", "Camera driver");
+
+   _PSUPP(sdl,             "SDL",             "SDL input/audio/video drivers");
+   _PSUPP(sdl2,            "SDL2",            "SDL2 input/audio/video drivers");
+   _PSUPP(x11,             "X11",             "X11 input/video drivers");
+   _PSUPP(wayland,         "wayland",         "Wayland input/video drivers");
+   _PSUPP(thread,          "Threads",         "Threading support");
+
+   _PSUPP(vulkan,          "Vulkan",          "Vulkan video driver");
+   _PSUPP(opengl,          "OpenGL",          "OpenGL   video driver support");
+   _PSUPP(opengles,        "OpenGL ES",       "OpenGLES video driver support");
+   _PSUPP(xvideo,          "XVideo",          "Video driver");
+   _PSUPP(udev,            "UDEV",            "UDEV/EVDEV input driver support");
+   _PSUPP(egl,             "EGL",             "Video context driver");
+   _PSUPP(kms,             "KMS",             "Video context driver");
+   _PSUPP(vg,              "OpenVG",          "Video context driver");
+
+   _PSUPP(coreaudio,       "CoreAudio",       "Audio driver");
+   _PSUPP(alsa,            "ALSA",            "Audio driver");
+   _PSUPP(oss,             "OSS",             "Audio driver");
+   _PSUPP(jack,            "Jack",            "Audio driver");
+   _PSUPP(rsound,          "RSound",          "Audio driver");
+   _PSUPP(roar,            "RoarAudio",       "Audio driver");
+   _PSUPP(pulse,           "PulseAudio",      "Audio driver");
+   _PSUPP(dsound,          "DirectSound",     "Audio driver");
+   _PSUPP(xaudio,          "XAudio2",         "Audio driver");
+   _PSUPP(al,              "OpenAL",          "Audio driver");
+   _PSUPP(sl,              "OpenSL",          "Audio driver");
+
+   _PSUPP(7zip,            "7zip",            "7zip extraction support");
+   _PSUPP(zlib,            "zlib",            ".zip extraction support");
+
+   _PSUPP(dylib,           "External",        "External filter and plugin support");
+
+   _PSUPP(cg,              "Cg",              "Fragment/vertex shader driver");
+   _PSUPP(glsl,            "GLSL",            "Fragment/vertex shader driver");
+   _PSUPP(glsl,            "HLSL",            "Fragment/vertex shader driver");
+
+   _PSUPP(libxml2,         "libxml2",         "libxml2 XML parsing");
+
+   _PSUPP(sdl_image,       "SDL_image",       "SDL_image image loading");
+   _PSUPP(rpng,            "rpng",            "PNG image loading/encoding");
+   _PSUPP(rpng,            "rjpeg",           "JPEG image loading");
+
+   _PSUPP(fbo,             "FBO",             "OpenGL render-to-texture "
+                                              "(multi-pass shaders)");
+   
+   _PSUPP(dynamic,         "Dynamic",         "Dynamic run-time loading of "
+                                              "libretro library");
+   _PSUPP(ffmpeg,          "FFmpeg",          "On-the-fly recording of gameplay "
+                                              "with libavcodec");
+
+   _PSUPP(freetype,        "FreeType",        "TTF font rendering driver");
+   _PSUPP(coretext,        "CoreText",        "TTF font rendering driver "
+                                              "(for OSX and/or iOS)");
+   _PSUPP(netplay,         "Netplay",         "Peer-to-peer netplay");
+   _PSUPP(python,          "Python",          "Script support in shaders");
+
+   _PSUPP(libusb,          "Libusb",          "Libusb support");
+
+   _PSUPP(cocoa,           "Cocoa",           "Cocoa UI companion support "
+                                              "(for OSX and/or iOS)");
+
+   _PSUPP(qt,              "QT",              "QT UI companion support");
+   _PSUPP(avfoundation,    "AVFoundation",    "Camera driver");
+   _PSUPP(v4l2,            "Video4Linux2",    "Camera driver");
 }
 #undef _PSUPP
 
@@ -178,8 +196,10 @@ static void retroarch_print_version(void)
 {
    char str[PATH_MAX_LENGTH] = {0};
 
-   fprintf(stderr, "%s: Frontend for libretro -- v%s",
-         msg_hash_to_str(MSG_PROGRAM), PACKAGE_VERSION);
+   fprintf(stderr, "%s: %s -- v%s",
+         msg_hash_to_str(MSG_PROGRAM),
+         msg_hash_to_str(MSG_LIBRETRO_FRONTEND),
+         PACKAGE_VERSION);
 #ifdef HAVE_GIT_VERSION
    printf(" -- %s --\n", retroarch_git_version);
 #endif
@@ -354,7 +374,6 @@ static void retroarch_set_special_paths(char **argv, unsigned num_content)
    unsigned i;
    union string_list_elem_attr attr;
    global_t   *global   = global_get_ptr();
-   settings_t *settings = config_get_ptr();
 
    /* First content file is the significant one. */
    retroarch_set_basename(argv[0]);
@@ -372,25 +391,21 @@ static void retroarch_set_special_paths(char **argv, unsigned num_content)
 
    if (!global->has_set.state_path)
       fill_pathname_noext(global->name.savestate, global->name.base,
-            ".state", sizeof(global->name.savestate));
+            file_path_str(FILE_PATH_STATE_EXTENSION),
+            sizeof(global->name.savestate));
 
    if (path_is_directory(global->name.savestate))
    {
       fill_pathname_dir(global->name.savestate, global->name.base,
-            ".state", sizeof(global->name.savestate));
+            file_path_str(FILE_PATH_STATE_EXTENSION),
+            sizeof(global->name.savestate));
       RARCH_LOG("%s \"%s\".\n",
             msg_hash_to_str(MSG_REDIRECTING_SAVESTATE_TO),
             global->name.savestate);
    }
-
-   /* If this is already set,
-    * do not overwrite it as this was initialized before in
-    * a menu or otherwise. */
-   if (string_is_empty(settings->directory.system))
-   {
-      RARCH_WARN("SYSTEM DIR is empty, assume CONTENT DIR %s\n",argv[0]);
-   }
 }
+
+#define MENU_VALUE_NO_CORE 0x7d5472cbU
 
 static void retroarch_set_paths_redirect(void)
 {
@@ -404,10 +419,7 @@ static void retroarch_set_paths_redirect(void)
    runloop_ctl(RUNLOOP_CTL_SYSTEM_INFO_GET, &info);
 
    if (!global)
-   {
-      RARCH_WARN("retroarch_set_paths_redirect was sent a NULL \"global\" pointer.");
       return;
-   }
 
    if (info->info.library_name &&
          !string_is_empty(info->info.library_name))
@@ -449,7 +461,8 @@ static void retroarch_set_paths_redirect(void)
             path_mkdir(current_savefile_dir);
             if(!path_is_directory(current_savefile_dir))
             {
-               RARCH_LOG("Reverting savefile directory to %s\n",
+               RARCH_LOG("%s %s\n",
+                     msg_hash_to_str(MSG_REVERTING_SAVEFILE_DIRECTORY_TO),
                      global->dir.savefile);
 
                strlcpy(current_savefile_dir,
@@ -477,7 +490,8 @@ static void retroarch_set_paths_redirect(void)
             path_mkdir(current_savestate_dir);
             if(!path_is_directory(current_savestate_dir))
             {
-               RARCH_LOG("Reverting savestate directory to %s\n",
+               RARCH_LOG("%s %s\n",
+                     msg_hash_to_str(MSG_REVERTING_SAVESTATE_DIRECTORY_TO),
                      global->dir.savestate);
                strlcpy(current_savestate_dir,
                      global->dir.savestate,
@@ -507,7 +521,8 @@ static void retroarch_set_paths_redirect(void)
    if (path_is_directory(global->name.savefile))
    {
       fill_pathname_dir(global->name.savefile, global->name.base,
-            ".srm", sizeof(global->name.savefile));
+            file_path_str(FILE_PATH_SRM_EXTENSION),
+            sizeof(global->name.savefile));
       RARCH_LOG("%s \"%s\".\n",
             msg_hash_to_str(MSG_REDIRECTING_SAVEFILE_TO),
             global->name.savefile);
@@ -516,7 +531,8 @@ static void retroarch_set_paths_redirect(void)
    if (path_is_directory(global->name.savestate))
    {
       fill_pathname_dir(global->name.savestate, global->name.base,
-            ".state", sizeof(global->name.savestate));
+            file_path_str(FILE_PATH_STATE_EXTENSION),
+            sizeof(global->name.savestate));
       RARCH_LOG("%s \"%s\".\n",
             msg_hash_to_str(MSG_REDIRECTING_SAVESTATE_TO),
             global->name.savestate);
@@ -525,7 +541,8 @@ static void retroarch_set_paths_redirect(void)
    if (path_is_directory(global->name.cheatfile))
    {
       fill_pathname_dir(global->name.cheatfile, global->name.base,
-            ".state", sizeof(global->name.cheatfile));
+            file_path_str(FILE_PATH_STATE_EXTENSION),
+            sizeof(global->name.cheatfile));
       RARCH_LOG("%s \"%s\".\n",
             msg_hash_to_str(MSG_REDIRECTING_CHEATFILE_TO),
             global->name.cheatfile);
@@ -544,45 +561,38 @@ const char *retroarch_get_current_savefile_dir(void)
    return ret;
 }
 
-
 enum rarch_content_type retroarch_path_is_media_type(const char *path)
 {
-   uint32_t hash_ext = msg_hash_calculate(path_get_extension(path));
-
-   switch (hash_ext)
+   switch (msg_hash_to_file_type(msg_hash_calculate(path_get_extension(path))))
    {
 #ifdef HAVE_FFMPEG
-      case MENU_VALUE_FILE_OGM:
-      case MENU_VALUE_FILE_MKV:
-      case MENU_VALUE_FILE_AVI:
-      case MENU_VALUE_FILE_MP4:
-      case MENU_VALUE_FILE_FLV:
-      case MENU_VALUE_FILE_WEBM:
-      case MENU_VALUE_FILE_3GP:
-      case MENU_VALUE_FILE_F4F:
-      case MENU_VALUE_FILE_F4V:
-      case MENU_VALUE_FILE_MOV:
-      case MENU_VALUE_FILE_WMV:
+      case FILE_TYPE_OGM:
+      case FILE_TYPE_MKV:
+      case FILE_TYPE_AVI:
+      case FILE_TYPE_MP4:
+      case FILE_TYPE_FLV:
+      case FILE_TYPE_WEBM:
+      case FILE_TYPE_3GP:
+      case FILE_TYPE_F4F:
+      case FILE_TYPE_F4V:
+      case FILE_TYPE_MOV:
+      case FILE_TYPE_WMV:
          return RARCH_CONTENT_MOVIE;
-      case MENU_VALUE_FILE_MP3:
-      case MENU_VALUE_FILE_M4A:
-      case MENU_VALUE_FILE_OGG:
-      case MENU_VALUE_FILE_FLAC:
-      case MENU_VALUE_FILE_WAV:
+      case FILE_TYPE_MP3:
+      case FILE_TYPE_M4A:
+      case FILE_TYPE_OGG:
+      case FILE_TYPE_FLAC:
+      case FILE_TYPE_WAV:
          return RARCH_CONTENT_MUSIC;
 #endif
 #ifdef HAVE_IMAGEVIEWER
-      case MENU_VALUE_FILE_JPG:
-      case MENU_VALUE_FILE_JPG_CAPS:
-      case MENU_VALUE_FILE_JPEG:
-      case MENU_VALUE_FILE_JPEG_CAPS:
-      case MENU_VALUE_FILE_PNG:
-      case MENU_VALUE_FILE_PNG_CAPS:
-      case MENU_VALUE_FILE_TGA:
-      case MENU_VALUE_FILE_BMP:
+      case FILE_TYPE_JPEG:
+      case FILE_TYPE_PNG:
+      case FILE_TYPE_TGA:
+      case FILE_TYPE_BMP:
          return RARCH_CONTENT_IMAGE;
 #endif
-      case 0:
+      case FILE_TYPE_NONE:
       default:
          break;
    }
@@ -730,6 +740,10 @@ static void retroarch_parse_input(int argc, char *argv[])
    {
       int port;
       int c = getopt_long(argc, argv, optstring, opts, NULL);
+
+#if 0
+      RARCH_LOG("c is: %c, optarg is: [%s]\n", c, string_is_empty(optarg) ? "" : optarg);
+#endif
 
       if (c == -1)
          break;
@@ -1028,7 +1042,7 @@ static void retroarch_parse_input(int argc, char *argv[])
             retroarch_fail(1, "retroarch_parse_input()");
 
          default:
-            RARCH_ERR("Error parsing arguments.\n");
+            RARCH_ERR("%s\n", msg_hash_to_str(MSG_ERROR_PARSING_ARGUMENTS));
             retroarch_fail(1, "retroarch_parse_input()");
       }
    }
@@ -1048,13 +1062,13 @@ static void retroarch_parse_input(int argc, char *argv[])
       }
    }
 
-   if (!*global->subsystem && optind < argc)
+   if (string_is_empty(global->subsystem) && optind < argc)
    {
       /* We requested explicit ROM, so use PLAIN core type. */
       retroarch_set_current_core_type(CORE_TYPE_PLAIN, false);
       retroarch_set_pathnames((const char*)argv[optind]);
    }
-   else if (*global->subsystem && optind < argc)
+   else if (!string_is_empty(global->subsystem) && optind < argc)
    {
       /* We requested explicit ROM, so use PLAIN core type. */
       retroarch_set_current_core_type(CORE_TYPE_PLAIN, false);
@@ -1087,7 +1101,7 @@ static void retroarch_init_savefile_paths(void)
    global->savefiles = string_list_new();
    retro_assert(global->savefiles);
 
-   if (system && *global->subsystem)
+   if (system && !string_is_empty(global->subsystem))
    {
       /* For subsystems, we know exactly which RAM types are supported. */
 
@@ -1139,11 +1153,15 @@ static void retroarch_init_savefile_paths(void)
 
       /* Let other relevant paths be inferred from the main SRAM location. */
       if (!global->has_set.save_path)
-         fill_pathname_noext(global->name.savefile, global->name.base, ".srm",
+         fill_pathname_noext(global->name.savefile,
+               global->name.base,
+               file_path_str(FILE_PATH_SRM_EXTENSION),
                sizeof(global->name.savefile));
       if (path_is_directory(global->name.savefile))
       {
-         fill_pathname_dir(global->name.savefile, global->name.base, ".srm",
+         fill_pathname_dir(global->name.savefile,
+               global->name.base,
+               file_path_str(FILE_PATH_SRM_EXTENSION),
                sizeof(global->name.savefile));
          RARCH_LOG("%s \"%s\".\n",
                msg_hash_to_str(MSG_REDIRECTING_SAVEFILE_TO),
@@ -1161,7 +1179,9 @@ static void retroarch_init_savefile_paths(void)
       /* Infer .rtc save path from save ram path. */
       attr.i = RETRO_MEMORY_RTC;
       fill_pathname(savefile_name_rtc,
-            global->name.savefile, ".rtc", sizeof(savefile_name_rtc));
+            global->name.savefile,
+            file_path_str(FILE_PATH_RTC_EXTENSION),
+            sizeof(savefile_name_rtc));
       string_list_append(global->savefiles, savefile_name_rtc, attr);
    }
 }
@@ -1256,7 +1276,8 @@ bool retroarch_main_init(int argc, char *argv[])
 
    if (setjmp(error_sjlj_context) > 0)
    {
-      RARCH_ERR("Fatal error received in: \"%s\"\n", error_string);
+      RARCH_ERR("%s: \"%s\"\n",
+            msg_hash_to_str(MSG_FATAL_ERROR_RECEIVED_IN), error_string);
       return false;
    }
 
@@ -1288,15 +1309,11 @@ bool retroarch_main_init(int argc, char *argv[])
       settings_t *settings = config_get_ptr();
 
       if (settings && (settings->multimedia.builtin_mediaplayer_enable ||
-            settings->multimedia.builtin_imageviewer_enable))
+               settings->multimedia.builtin_imageviewer_enable))
       {
          char *fullpath    = NULL;
-
          if (runloop_ctl(RUNLOOP_CTL_GET_CONTENT_PATH, &fullpath))
          {
-#if defined(HAVE_FFMPEG) || defined(HAVE_IMAGEVIEWER)
-            global_t *global  = global_get_ptr();
-#endif
             switch (retroarch_path_is_media_type(fullpath))
             {
                case RARCH_CONTENT_MOVIE:
@@ -1304,6 +1321,7 @@ bool retroarch_main_init(int argc, char *argv[])
                   if (settings->multimedia.builtin_mediaplayer_enable)
                   {
 #ifdef HAVE_FFMPEG
+                     global_t *global  = global_get_ptr();
                      global->has_set.libretro  = false;
                      retroarch_set_current_core_type(CORE_TYPE_FFMPEG, false);
 #endif
@@ -1313,6 +1331,7 @@ bool retroarch_main_init(int argc, char *argv[])
                case RARCH_CONTENT_IMAGE:
                   if (settings->multimedia.builtin_imageviewer_enable)
                   {
+                     global_t *global  = global_get_ptr();
                      global->has_set.libretro  = false;
                      retroarch_set_current_core_type(CORE_TYPE_IMAGEVIEWER, false);
                   }
@@ -1525,12 +1544,14 @@ void retroarch_set_pathnames(const char *path)
 
    if (!global->has_set.save_path)
       fill_pathname_noext(global->name.savefile, global->name.base,
-            ".srm", sizeof(global->name.savefile));
+            file_path_str(FILE_PATH_SRM_EXTENSION), sizeof(global->name.savefile));
+
    if (!global->has_set.state_path)
       fill_pathname_noext(global->name.savestate, global->name.base,
-            ".state", sizeof(global->name.savestate));
+            file_path_str(FILE_PATH_STATE_EXTENSION), sizeof(global->name.savestate));
+
    fill_pathname_noext(global->name.cheatfile, global->name.base,
-         ".cht", sizeof(global->name.cheatfile));
+         file_path_str(FILE_PATH_CHT_EXTENSION), sizeof(global->name.cheatfile));
 
    retroarch_set_paths_redirect();
 }
@@ -1542,17 +1563,22 @@ void retroarch_fill_pathnames(void)
    retroarch_init_savefile_paths();
    bsv_movie_set_path(global->name.savefile);
 
-   if (!*global->name.base)
+   if (string_is_empty(global->name.base))
       return;
 
-   if (!*global->name.ups)
-      fill_pathname_noext(global->name.ups, global->name.base, ".ups",
+   if (string_is_empty(global->name.ups))
+      fill_pathname_noext(global->name.ups, global->name.base,
+            file_path_str(FILE_PATH_UPS_EXTENSION),
             sizeof(global->name.ups));
-   if (!*global->name.bps)
-      fill_pathname_noext(global->name.bps, global->name.base, ".bps",
+
+   if (string_is_empty(global->name.bps))
+      fill_pathname_noext(global->name.bps, global->name.base,
+            file_path_str(FILE_PATH_BPS_EXTENSION),
             sizeof(global->name.bps));
-   if (!*global->name.ips)
-      fill_pathname_noext(global->name.ips, global->name.base, ".ips",
+
+   if (string_is_empty(global->name.ips))
+      fill_pathname_noext(global->name.ips, global->name.base,
+            file_path_str(FILE_PATH_IPS_EXTENSION),
             sizeof(global->name.ips));
 }
 
@@ -1640,8 +1666,9 @@ void retroarch_set_current_core_type(enum rarch_core_type type, bool explicitly_
    {
       current_core_explicitly_set = true;
       explicit_current_core_type  = type;
+      current_core_type           = type;
    }
-   else
+   else if (!current_core_explicitly_set)
       current_core_type          = type;
 }
 

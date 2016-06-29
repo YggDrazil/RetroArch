@@ -126,7 +126,8 @@ static bool command_reply(const char * data, size_t len)
 #if defined(HAVE_NETWORK_CMD) && defined(HAVE_NETPLAY)
    if (lastcmd_source == cmd_network)
    {
-      sendto(lastcmd_net_fd, data, len, 0, (struct sockaddr*)&lastcmd_net_source, lastcmd_net_source_len);
+      sendto(lastcmd_net_fd, data, len, 0,
+            (struct sockaddr*)&lastcmd_net_source, lastcmd_net_source_len);
       return true;
    }
 #endif
@@ -149,32 +150,23 @@ struct cmd_action_map
 };
 
 #ifdef HAVE_COMMAND
-#define COMMAND_EXT_GLSL         0x7c976537U
-#define COMMAND_EXT_GLSLP        0x0f840c87U
-#define COMMAND_EXT_CG           0x0059776fU
-#define COMMAND_EXT_CGP          0x0b8865bfU
-#define COMMAND_EXT_SLANG        0x105ce63aU
-#define COMMAND_EXT_SLANGP       0x1bf9adeaU
-
 static bool command_set_shader(const char *arg)
 {
    char msg[256];
    enum rarch_shader_type type = RARCH_SHADER_NONE;
-   const char             *ext = path_get_extension(arg);
-   uint32_t ext_hash           = msg_hash_calculate(ext);
 
-   switch (ext_hash)
+   switch (msg_hash_to_file_type(msg_hash_calculate(path_get_extension(arg))))
    {
-      case COMMAND_EXT_GLSL:
-      case COMMAND_EXT_GLSLP:
+      case FILE_TYPE_SHADER_GLSL:
+      case FILE_TYPE_SHADER_PRESET_GLSLP:
          type = RARCH_SHADER_GLSL;
          break;
-      case COMMAND_EXT_CG:
-      case COMMAND_EXT_CGP:
+      case FILE_TYPE_SHADER_CG:
+      case FILE_TYPE_SHADER_PRESET_CGP:
          type = RARCH_SHADER_CG;
          break;
-      case COMMAND_EXT_SLANG:
-      case COMMAND_EXT_SLANGP:
+      case FILE_TYPE_SHADER_SLANG:
+      case FILE_TYPE_SHADER_PRESET_SLANGP:
          type = RARCH_SHADER_SLANG;
          break;
       default:
@@ -197,13 +189,13 @@ static bool command_read_ram(const char *arg)
    cheevos_var_t var;
    const uint8_t * data;
    unsigned nbytes;
-   int i;
+   unsigned i;
    char reply[256];
    char *reply_at = NULL;
 
-   strcpy(reply, "READ_CORE_RAM ");
+   strlcpy(reply, "READ_CORE_RAM ", sizeof(reply));
    reply_at = reply + strlen("READ_CORE_RAM ");
-   strcpy(reply_at, arg);
+   strlcpy(reply_at, arg, sizeof(reply)-strlen(reply));
 
    cheevos_parse_guest_addr(&var, strtoul(reply_at, (char**)&reply_at, 16));
    data = cheevos_get_memory(&var);
@@ -221,21 +213,20 @@ static bool command_read_ram(const char *arg)
    }
    else
    {
-      strcpy(reply_at, " -1\n");
+      strlcpy(reply_at, " -1\n", sizeof(reply)-strlen(reply));
       command_reply(reply, reply_at+strlen(" -1\n") - reply);
    }
-
 
    return true;
 }
 
 static bool command_write_ram(const char *arg)
 {
-   cheevos_var_t var;
-   uint8_t * data;
-   unsigned nbytes;
    int i;
    char reply[256];
+   cheevos_var_t var;
+   unsigned nbytes;
+   uint8_t * data    = NULL;
 
    cheevos_parse_guest_addr(&var, strtoul(arg, (char**)&arg, 16));
    data = cheevos_get_memory(&var);
@@ -855,7 +846,9 @@ static void command_event_disk_control_set_eject(bool new_state, bool print_log)
 
    if (control->set_eject_state(new_state))
       snprintf(msg, sizeof(msg), "%s %s",
-            new_state ? "Ejected" : "Closed",
+            new_state ? 
+            msg_hash_to_str(MSG_DISK_EJECTED) : 
+            msg_hash_to_str(MSG_DISK_CLOSED),
             msg_hash_to_str(MSG_VIRTUAL_DISK_TRAY));
    else
    {
@@ -866,7 +859,7 @@ static void command_event_disk_control_set_eject(bool new_state, bool print_log)
             msg_hash_to_str(MSG_VIRTUAL_DISK_TRAY));
    }
 
-   if (*msg)
+   if (!string_is_empty(msg))
    {
       if (error)
          RARCH_ERR("%s\n", msg);
@@ -925,7 +918,7 @@ static void command_event_disk_control_set_index(unsigned idx)
       error = true;
    }
 
-   if (*msg)
+   if (!string_is_empty(msg))
    {
       if (error)
          RARCH_ERR("%s\n", msg);
@@ -978,7 +971,7 @@ static bool command_event_disk_control_append_image(const char *path)
    command_event(CMD_EVENT_AUTOSAVE_DEINIT, NULL);
 
    /* TODO: Need to figure out what to do with subsystems case. */
-   if (!*global->subsystem)
+   if (string_is_empty(global->subsystem))
    {
       /* Update paths for our new image.
        * If we actually use append_image, we assume that we
@@ -1458,20 +1451,24 @@ static bool command_event_save_core_config(void)
       /* In case of collision, find an alternative name. */
       for (i = 0; i < 16; i++)
       {
-         char tmp[64];
+         char tmp[64] = {0};
 
-         fill_pathname_base(
+         fill_pathname_base_noext(
                config_name,
                settings->path.libretro,
                sizeof(config_name));
 
-         path_remove_extension(config_name);
          fill_pathname_join(config_path, config_dir, config_name,
                sizeof(config_path));
+
          if (i)
-            snprintf(tmp, sizeof(tmp), "-%u.cfg", i);
+            snprintf(tmp, sizeof(tmp), "-%u%s",
+                  i,
+                  file_path_str(FILE_PATH_CONFIG_EXTENSION));
          else
-            strlcpy(tmp, ".cfg", sizeof(tmp));
+            strlcpy(tmp,
+                  file_path_str(FILE_PATH_CONFIG_EXTENSION),
+                  sizeof(tmp));
 
          strlcat(config_path, tmp, sizeof(config_path));
          if (!path_file_exists(config_path))
@@ -1486,7 +1483,9 @@ static bool command_event_save_core_config(void)
    if (!found_path)
    {
       RARCH_WARN("Cannot infer new config path. Use current time.\n");
-      fill_dated_filename(config_name, "cfg", sizeof(config_name));
+      fill_dated_filename(config_name,
+            file_path_str(FILE_PATH_CONFIG_EXTENSION),
+            sizeof(config_name));
       fill_pathname_join(config_path, config_dir, config_name,
             sizeof(config_path));
    }
@@ -1544,11 +1543,12 @@ void command_event_save_current_config(void)
        */
 
       /* Flush out the core specific config. */
-      if (*global->path.core_specific_config &&
-            settings->core_specific_config)
+      if (!string_is_empty(global->path.core_specific_config)
+            && settings->core_specific_config)
          ret = config_save_file(global->path.core_specific_config);
       else
          ret = config_save_file(global->path.config);
+
       if (ret)
       {
          snprintf(msg, sizeof(msg), "Saved new config to \"%s\".",
@@ -1783,7 +1783,7 @@ bool command_event(enum event_command cmd, void *data)
                core_info_ctx_find_t info_find;
 
 #if defined(HAVE_DYNAMIC)
-               if (!(*settings->path.libretro))
+               if (string_is_empty(settings->path.libretro))
                   return false;
 
                libretro_get_system_info(
@@ -1897,13 +1897,14 @@ bool command_event(enum event_command cmd, void *data)
          command_event(CMD_EVENT_AUTOSAVE_STATE, NULL);
          command_event(CMD_EVENT_DISABLE_OVERRIDES, NULL);
 
-         if (!task_push_content_load_default(
-                  NULL, NULL,
-                  &content_info,
-                  CORE_TYPE_DUMMY,
-                  CONTENT_MODE_LOAD_NOTHING_WITH_DUMMY_CORE,
-                  NULL, NULL))
-            return false;
+         if (content_is_inited())
+            if (!task_push_content_load_default(
+                     NULL, NULL,
+                     &content_info,
+                     CORE_TYPE_DUMMY,
+                     CONTENT_MODE_LOAD_NOTHING_WITH_DUMMY_CORE,
+                     NULL, NULL))
+               return false;
          command_event(CMD_EVENT_LOAD_CORE_DEINIT, NULL);
          break;
       case CMD_EVENT_QUIT:
@@ -2093,14 +2094,14 @@ bool command_event(enum event_command cmd, void *data)
       case CMD_EVENT_CORE_INFO_INIT:
          command_event(CMD_EVENT_CORE_INFO_DEINIT, NULL);
 
-         if (*settings->directory.libretro)
+         if (!string_is_empty(settings->directory.libretro))
             core_info_init_list();
          break;
       case CMD_EVENT_CORE_DEINIT:
          {
+            struct retro_hw_render_callback *hwr = NULL;
             content_reset_savestate_backups();
-            struct retro_hw_render_callback *hwr =
-               video_driver_get_hw_context();
+            hwr = video_driver_get_hw_context();
             command_event_deinit_core(true);
 
             if (hwr)
@@ -2151,15 +2152,18 @@ bool command_event(enum event_command cmd, void *data)
             /* RARCH_DRIVER_CTL_UNINIT clears the callback struct so we
              * need to make sure to keep a copy */
             struct retro_hw_render_callback *hwr = NULL;
+            const struct retro_hw_render_context_negotiation_interface *iface = NULL;
             struct retro_hw_render_callback hwr_copy;
             int flags = DRIVERS_CMD_ALL;
 
             hwr = video_driver_get_hw_context();
+            iface = video_driver_get_context_negotiation_interface();
             memcpy(&hwr_copy, hwr, sizeof(hwr_copy));
 
             driver_ctl(RARCH_DRIVER_CTL_UNINIT, &flags);
 
             memcpy(hwr, &hwr_copy, sizeof(*hwr));
+            video_driver_set_context_negotiation_interface(iface);
 
             driver_ctl(RARCH_DRIVER_CTL_INIT, &flags);
          }

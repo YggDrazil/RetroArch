@@ -32,6 +32,7 @@
 
 #ifdef HAVE_MENU
 #include "../../../menu/menu_entry.h"
+#include "../../../menu/menu_navigation.h"
 #include "../../../menu/drivers/menu_generic.h"
 #endif
 
@@ -125,7 +126,9 @@ static void RunActionSheet(const char* title, const struct string_list* items,
   result.textLabel.text = BOXSTRING(label);
 
   if (string_is_empty(label))
-    strlcpy(buffer, "N/A", sizeof(buffer));
+    strlcpy(buffer,
+          msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NOT_AVAILABLE),
+          sizeof(buffer));
   result.detailTextLabel.text = BOXSTRING(buffer);
   return result;
 }
@@ -428,7 +431,9 @@ replacementString:(NSString *)string
 
    menu_entry_get_value(self.i, buffer, sizeof(buffer));
    if (string_is_empty(buffer))
-      strlcpy(buffer, "N/A", sizeof(buffer));
+      strlcpy(buffer,
+            msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NOT_AVAILABLE),
+            sizeof(buffer));
 
    field.placeholder = BOXSTRING(buffer);
 
@@ -761,7 +766,15 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 
 - (void)menuBack
 {
-  menu_entry_go_back();
+#ifdef HAVE_MENU
+   size_t selection;
+   menu_entry_t entry = {{0}};
+    
+   menu_navigation_ctl(MENU_NAVIGATION_CTL_GET_SELECTION, & selection);
+    
+   menu_entry_get(&entry, 0, selection, NULL, false);
+   menu_entry_action(&entry, selection, MENU_ACTION_CANCEL);
+#endif
 }
 
 @end

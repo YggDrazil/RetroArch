@@ -31,9 +31,9 @@
 
 #include "input_remote.h"
 
-#include "msg_hash.h"
-#include "runloop.h"
-#include "verbosity.h"
+#include "../msg_hash.h"
+#include "../runloop.h"
+#include "../verbosity.h"
 
 #define DEFAULT_NETWORK_GAMEPAD_PORT 55400
 #define UDP_FRAME_PACKETS 16
@@ -155,6 +155,7 @@ static void input_remote_parse_packet(char *buffer, unsigned size, unsigned user
 {
    input_remote_state_t *ol_state  = input_remote_get_state_ptr();
    /* todo implement parsing of input_state from the packet */
+   RARCH_LOG ("Test : %s %d", buffer, atoi(buffer));
    ol_state->buttons[user] = atoi(buffer);
 }
 #endif
@@ -216,7 +217,6 @@ void input_remote_poll(input_remote_t *handle)
          char buf[8];
          ssize_t ret;
          fd_set fds;
-         struct timeval tmp_tv = {0};
 
          if (handle->net_fd[user] < 0)
             return;

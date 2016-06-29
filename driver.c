@@ -190,7 +190,9 @@ bool driver_find_next(const char *label, char *s, size_t len)
       find_driver_nonempty(label, i + 1, s, len);
    else
    {
-      RARCH_WARN("Couldn't find any next driver (current one: \"%s\").\n", s);
+      RARCH_WARN("%s (current one: \"%s\").\n",
+            msg_hash_to_str(MSG_COULD_NOT_FIND_ANY_NEXT_DRIVER),
+            s);
       return false;
    }
    return true;
@@ -220,13 +222,13 @@ static void driver_adjust_system_rates(void)
  **/
 static void driver_set_nonblock_state(void)
 {
-   settings_t        *settings = config_get_ptr();
    bool                 enable = input_driver_is_nonblock_state();
 
    /* Only apply non-block-state for video if we're using vsync. */
    if (video_driver_is_active() && video_driver_get_ptr(false))
    {
-      bool video_nonblock = enable;
+      settings_t *settings = config_get_ptr();
+      bool video_nonblock  = enable;
 
       if (     !settings->video.vsync 
             || runloop_ctl(RUNLOOP_CTL_IS_NONBLOCK_FORCED, NULL))

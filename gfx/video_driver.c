@@ -24,6 +24,7 @@
 #include <rthreads/rthreads.h>
 #endif
 
+#include <retro_common_api.h>
 #include <file/config_file.h>
 #include <features/features_cpu.h>
 
@@ -42,7 +43,6 @@
 #include "../msg_hash.h"
 
 #ifdef HAVE_MENU
-#include "../menu/menu_hash.h"
 #include "../menu/menu_setting.h"
 #endif
 
@@ -53,12 +53,6 @@
 #define TIME_TO_FPS(last_time, new_time, frames) ((1000000.0f * (frames)) / ((new_time) - (last_time)))
 
 #define FPS_UPDATE_INTERVAL 256
-
-#ifdef _WIN32
-#define U64_SIGN "%I64u"
-#else
-#define U64_SIGN "%llu"
-#endif
 
 typedef struct video_driver_state
 {
@@ -1018,7 +1012,7 @@ bool video_monitor_get_fps(char *buf, size_t size,
 
          strlcat(buf, "Frames: ", size);
 
-         snprintf(frames_text, sizeof(frames_text), U64_SIGN,
+         snprintf(frames_text, sizeof(frames_text), STRING_REP_UINT64,
                (unsigned long long)video_driver_frame_count);
 
          strlcat(buf, frames_text, size);
@@ -1026,7 +1020,7 @@ bool video_monitor_get_fps(char *buf, size_t size,
       }
 
       if (buf_fps && settings->fps_show)
-         snprintf(buf_fps, size_fps, "FPS: %6.1f || Frames: " U64_SIGN,
+         snprintf(buf_fps, size_fps, "FPS: %6.1f || Frames: " STRING_REP_UINT64,
                last_fps, (unsigned long long)video_driver_frame_count);
 
       return ret;
@@ -1035,7 +1029,7 @@ bool video_monitor_get_fps(char *buf, size_t size,
    curr_time = fps_time = new_time;
    strlcpy(buf, video_driver_title_buf, size);
    if (buf_fps)
-      strlcpy(buf_fps, "N/A", size_fps);
+      strlcpy(buf_fps, msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NOT_AVAILABLE), size_fps);
 
    return true;
 }
@@ -1186,8 +1180,8 @@ void video_driver_menu_settings(void **list_data, void *list_info_data,
 #if defined(GEKKO) || defined(__CELLOS_LV2__)
    CONFIG_ACTION(
          list, list_info,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_SCREEN_RESOLUTION),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_SCREEN_RESOLUTION),
+         msg_hash_to_str(MENU_ENUM_LABEL_SCREEN_RESOLUTION),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_SCREEN_RESOLUTION),
          group_info,
          subgroup_info,
          parent_group);
@@ -1197,11 +1191,11 @@ void video_driver_menu_settings(void **list_data, void *list_info_data,
    CONFIG_BOOL(
          list, list_info,
          &global->console.screen.pal60_enable,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_PAL60_ENABLE),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_PAL60_ENABLE),
+         msg_hash_to_str(MENU_ENUM_LABEL_PAL60_ENABLE),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_PAL60_ENABLE),
          false,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_OFF),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_ON),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_OFF),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_ON),
          group_info,
          subgroup_info,
          parent_group,
@@ -1214,8 +1208,8 @@ void video_driver_menu_settings(void **list_data, void *list_info_data,
    CONFIG_UINT(
          list, list_info,
          &global->console.screen.gamma_correction,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VIDEO_GAMMA),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_VIDEO_GAMMA),
+         msg_hash_to_str(MENU_ENUM_LABEL_VIDEO_GAMMA),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_VIDEO_GAMMA),
          0,
          group_info,
          subgroup_info,
@@ -1242,11 +1236,11 @@ void video_driver_menu_settings(void **list_data, void *list_info_data,
    CONFIG_BOOL(
          list, list_info,
          &global->console.softfilter_enable,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VIDEO_SOFT_FILTER),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_VIDEO_SOFT_FILTER),
+         msg_hash_to_str(MENU_ENUM_LABEL_VIDEO_SOFT_FILTER),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_VIDEO_SOFT_FILTER),
          false,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_OFF),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_ON),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_OFF),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_ON),
          group_info,
          subgroup_info,
          parent_group,
@@ -1263,8 +1257,8 @@ void video_driver_menu_settings(void **list_data, void *list_info_data,
    CONFIG_UINT(
          list, list_info,
          &settings->video.swap_interval,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VIDEO_FILTER_FLICKER),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_VIDEO_FILTER_FLICKER),
+         msg_hash_to_str(MENU_ENUM_LABEL_VIDEO_FILTER_FLICKER),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_VIDEO_FILTER_FLICKER),
          0,
          group_info,
          subgroup_info,
@@ -1284,6 +1278,8 @@ void video_driver_menu_settings(void **list_data, void *list_info_data,
  * used for GLES.
  * TODO: Refactor this better. */
 static struct retro_hw_render_callback hw_render;
+static const struct retro_hw_render_context_negotiation_interface *hw_render_context_negotiation;
+
 static bool video_driver_use_rgba                = false;
 static bool video_driver_data_own                = false;
 static bool video_driver_active                  = false;
@@ -1821,11 +1817,22 @@ void video_driver_deinit_hw_context(void)
       hw_render.context_destroy();
 
    memset(&hw_render, 0, sizeof(hw_render));
+   hw_render_context_negotiation = NULL;
 }
 
 struct retro_hw_render_callback *video_driver_get_hw_context(void)
 {
    return &hw_render;
+}
+
+const struct retro_hw_render_context_negotiation_interface *video_driver_get_context_negotiation_interface(void)
+{
+   return hw_render_context_negotiation;
+}
+
+void video_driver_set_context_negotiation_interface(const struct retro_hw_render_context_negotiation_interface *iface)
+{
+   hw_render_context_negotiation = iface;
 }
 
 void video_driver_set_video_cache_context(void)

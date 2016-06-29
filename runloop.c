@@ -42,6 +42,7 @@
 #include "movie.h"
 #include "retroarch.h"
 #include "runloop.h"
+#include "file_path_special.h"
 #include "managers/core_option_manager.h"
 #include "managers/cheat_manager.h"
 #include "managers/state_manager.h"
@@ -61,7 +62,6 @@
 
 #ifdef HAVE_MENU
 #include "menu/menu_driver.h"
-#include "menu/menu_content.h"
 #endif
 
 #ifdef HAVE_NETPLAY
@@ -76,19 +76,12 @@
 #define DEFAULT_EXT ""
 #endif
 
-#define SHADER_EXT_GLSL      0x7c976537U
-#define SHADER_EXT_GLSLP     0x0f840c87U
-#define SHADER_EXT_CG        0x0059776fU
-#define SHADER_EXT_CGP       0x0b8865bfU
-#define SHADER_EXT_SLANG     0x105ce63aU
-#define SHADER_EXT_SLANGP    0x1bf9adeaU
+#define runloop_cmd_triggered(cmd, id) BIT64_GET(cmd->state[2].state, id) 
 
-#define runloop_cmd_triggered(cmd, id) BIT64_GET(cmd->state[2], id) 
-
-#define runloop_cmd_press(cmd, id)     BIT64_GET(cmd->state[0], id)
-#define runloop_cmd_pressed(cmd, id)   BIT64_GET(cmd->state[1], id)
+#define runloop_cmd_press(cmd, id)     BIT64_GET(cmd->state[0].state, id)
+#define runloop_cmd_pressed(cmd, id)   BIT64_GET(cmd->state[1].state, id)
 #ifdef HAVE_MENU
-#define runloop_cmd_menu_press(cmd)   (BIT64_GET(cmd->state[2], RARCH_MENU_TOGGLE) || \
+#define runloop_cmd_menu_press(cmd)   (BIT64_GET(cmd->state[2].state, RARCH_MENU_TOGGLE) || \
                                       runloop_cmd_get_state_menu_toggle_button_combo( \
                                             settings, cmd->state[0], \
                                             cmd->state[1], cmd->state[2]))
@@ -323,19 +316,24 @@ static bool runloop_cmd_get_state_menu_toggle_button_combo(
       case 0:
          return false;
       case 1:
-         if (!BIT64_GET(input, RETRO_DEVICE_ID_JOYPAD_DOWN))
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_DOWN))
             return false;
-         if (!BIT64_GET(input, RETRO_DEVICE_ID_JOYPAD_Y))
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_Y))
             return false;
-         if (!BIT64_GET(input, RETRO_DEVICE_ID_JOYPAD_L))
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_L))
             return false;
-         if (!BIT64_GET(input, RETRO_DEVICE_ID_JOYPAD_R))
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_R))
             return false;
          break;
       case 2:
-         if (!BIT64_GET(input, RETRO_DEVICE_ID_JOYPAD_L3))
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_L3))
             return false;
-         if (!BIT64_GET(input, RETRO_DEVICE_ID_JOYPAD_R3))
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_R3))
+            return false;
+      case 3:
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_START))
+            return false;
+         if (!BIT64_GET(input.state, RETRO_DEVICE_ID_JOYPAD_SELECT))
             return false;
          break;
    }
@@ -503,10 +501,8 @@ static bool shader_dir_init(rarch_dir_list_t *dir_list)
 static void runloop_check_shader_dir(rarch_dir_list_t *dir_list,
       bool pressed_next, bool pressed_prev)
 {
-   uint32_t ext_hash           = 0;
    char msg[128]               = {0};
    const char *shader          = NULL;
-   const char *ext             = NULL;
    enum rarch_shader_type type = RARCH_SHADER_NONE;
 
    if (!dir_list || !dir_list->list)
@@ -528,21 +524,19 @@ static void runloop_check_shader_dir(rarch_dir_list_t *dir_list,
       return;
 
    shader   = dir_list->list->elems[dir_list->ptr].data;
-   ext      = path_get_extension(shader);
-   ext_hash = msg_hash_calculate(ext);
 
-   switch (ext_hash)
+   switch (msg_hash_to_file_type(msg_hash_calculate(path_get_extension(shader))))
    {
-      case SHADER_EXT_GLSL:
-      case SHADER_EXT_GLSLP:
+      case FILE_TYPE_SHADER_GLSL:
+      case FILE_TYPE_SHADER_PRESET_GLSLP:
          type = RARCH_SHADER_GLSL;
          break;
-      case SHADER_EXT_SLANG:
-      case SHADER_EXT_SLANGP:
+      case FILE_TYPE_SHADER_SLANG:
+      case FILE_TYPE_SHADER_PRESET_SLANGP:
          type = RARCH_SHADER_SLANG;
          break;
-      case SHADER_EXT_CG:
-      case SHADER_EXT_CGP:
+      case FILE_TYPE_SHADER_CG:
+      case FILE_TYPE_SHADER_PRESET_CGP:
          type = RARCH_SHADER_CG;
          break;
       default:
@@ -1115,7 +1109,8 @@ bool runloop_ctl(enum runloop_ctl_state state, void *data)
 
             RARCH_LOG("Environ GET_VARIABLE %s:\n", var->key);
             core_option_manager_get(runloop_core_options, var);
-            RARCH_LOG("\t%s\n", var->value ? var->value : "N/A");
+            RARCH_LOG("\t%s\n", var->value ? var->value : 
+                  msg_hash_to_str(MENU_ENUM_LABEL_VALUE_NOT_AVAILABLE));
          }
          break;
       case RUNLOOP_CTL_CORE_OPTIONS_INIT:
@@ -1128,10 +1123,10 @@ bool runloop_ctl(enum runloop_ctl_state state, void *data)
             const struct retro_variable *vars = 
                (const struct retro_variable*)data;
 
-            if (!*options_path && *global->path.config)
+            if (string_is_empty(options_path) && *global->path.config)
             {
                fill_pathname_resolve_relative(buf, global->path.config,
-                     "retroarch-core-options.cfg", sizeof(buf));
+                     file_path_str(FILE_PATH_CORE_OPTIONS_CONFIG), sizeof(buf));
                options_path = buf;
             }
 
@@ -1310,10 +1305,10 @@ int runloop_iterate(unsigned *sleep_ms)
    unsigned i;
    event_cmd_state_t    cmd;
    retro_time_t current, target, to_sleep_ms;
+   static retro_input_t last_input              = {0};
    event_cmd_state_t   *cmd_ptr                 = &cmd;
    static retro_time_t frame_limit_minimum_time = 0.0;
    static retro_time_t frame_limit_last_time    = 0.0;
-   static retro_input_t last_input              = 0;
    settings_t *settings                         = config_get_ptr();
 
    cmd.state[1]                                 = last_input;
@@ -1340,14 +1335,14 @@ int runloop_iterate(unsigned *sleep_ms)
    if (input_driver_is_flushing_input())
    {
       input_driver_unset_flushing_input();
-      if (cmd.state[0])
+      if (cmd.state[0].state)
       {
-         cmd.state[0] = 0;
+         cmd.state[0].state = 0;
 
          /* If core was paused before entering menu, evoke
           * pause toggle to wake it up. */
          if (runloop_ctl(RUNLOOP_CTL_IS_PAUSED, NULL))
-            BIT64_SET(cmd.state[0], RARCH_PAUSE_TOGGLE);
+            BIT64_SET(cmd.state[0].state, RARCH_PAUSE_TOGGLE);
          input_driver_set_flushing_input();
       }
    }
@@ -1378,7 +1373,7 @@ int runloop_iterate(unsigned *sleep_ms)
       runloop_frame_time.callback(delta);
    }
 
-   cmd.state[2]      = cmd.state[0] & ~cmd.state[1];  /* trigger  */
+   cmd.state[2].state      = cmd.state[0].state & ~cmd.state[1].state;  /* trigger  */
 
    if (runloop_cmd_triggered(cmd_ptr, RARCH_OVERLAY_NEXT))
       command_event(CMD_EVENT_OVERLAY_NEXT, NULL);

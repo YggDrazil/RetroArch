@@ -39,6 +39,7 @@ int scePowerSetArmClockFrequency(int freq);
 
 #include "../frontend_driver.h"
 #include "../../defaults.h"
+#include "../../file_path_special.h"
 #include "../../defines/psp_defines.h"
 #include "../../verbosity.h"
 
@@ -107,7 +108,7 @@ static void frontend_psp_get_environment_settings(int *argc, char *argv[],
    fill_pathname_join(g_defaults.dir.playlist, g_defaults.dir.core,
          "playlists", sizeof(g_defaults.dir.playlist));
    fill_pathname_join(g_defaults.path.config, g_defaults.dir.port,
-         "retroarch.cfg", sizeof(g_defaults.path.config));
+         file_path_str(FILE_PATH_MAIN_CONFIG), sizeof(g_defaults.path.config));
    fill_pathname_join(g_defaults.dir.cheats, g_defaults.dir.port,
          "cheats", sizeof(g_defaults.dir.cheats));
    fill_pathname_join(g_defaults.dir.remap, g_defaults.dir.port,
@@ -370,14 +371,14 @@ static int frontend_psp_parse_drive_list(void *data)
 
 #ifdef VITA
    menu_entries_add_enum(list,
-         "cache0:/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "cache0:/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
 #else
    menu_entries_add_enum(list,
-         "ms0:/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "ms0:/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "ef0:/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "ef0:/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "host0:/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "host0:/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
 #endif
 #endif
 

@@ -32,28 +32,13 @@
 
 #include <string/stdstring.h>
 
-#if defined(HAVE_FILE_LOGGER)
-#define LOG_FILE (retro_main_log_file())
-#else
-#define LOG_FILE (stderr)
-#endif
-
-#if defined(IS_SALAMANDER)
-#define PROGRAM_NAME "RetroArch Salamander"
-#elif defined(RARCH_INTERNAL)
-#define PROGRAM_NAME "RetroArch"
-#elif defined(MARCH_INTERNAL)
-#define PROGRAM_NAME "MicroArch"
-#else
-#define PROGRAM_NAME "N/A"
-#endif
-
+#include "file_path_special.h"
 #include "verbosity.h"
 
 /* If this is non-NULL. RARCH_LOG and friends 
  * will write to this file. */
-static FILE *log_file;
-static bool main_verbosity;
+static FILE *log_file      = NULL;
+static bool main_verbosity = false;
 
 void verbosity_enable(void)
 {
@@ -114,7 +99,7 @@ static aslclient asl_client;
 #else
    if (!asl_inited)
    {
-      asl_client = asl_open("RetroArch", "com.apple.console", ASL_OPT_STDERR | ASL_OPT_NO_DELAY);
+      asl_client = asl_open(file_path_str(FILE_PATH_PROGRAM_NAME), "com.apple.console", ASL_OPT_STDERR | ASL_OPT_NO_DELAY);
       asl_inited = 1;
    }
    aslmsg msg = asl_new(ASL_TYPE_MSG);
@@ -128,7 +113,7 @@ static aslclient asl_client;
    /* FIXME: Using arbitrary string as fmt argument is unsafe. */
    char msg_new[1024], buffer[1024];
    snprintf(msg_new, sizeof(msg_new), "%s: %s %s",
-         PROGRAM_NAME,
+         file_path_str(FILE_PATH_PROGRAM_NAME),
          tag ? tag : "",
          fmt);
    wvsprintf(buffer, msg_new, ap);
@@ -137,16 +122,27 @@ static aslclient asl_client;
    int prio = ANDROID_LOG_INFO;
    if (tag)
    {
-      if (string_is_equal("[WARN]", tag))
+      if (string_is_equal(file_path_str(FILE_PATH_LOG_WARN), tag))
          prio = ANDROID_LOG_WARN;
-      else if (string_is_equal("[ERROR]", tag))
+      else if (string_is_equal(file_path_str(FILE_PATH_LOG_ERROR), tag))
          prio = ANDROID_LOG_ERROR;
    }
-   __android_log_vprint(prio, PROGRAM_NAME, fmt, ap);
+   __android_log_vprint(prio,
+         file_path_str(FILE_PATH_PROGRAM_NAME),
+         fmt,
+         ap);
 #else
-   fprintf(LOG_FILE, "%s %s :: ", PROGRAM_NAME, tag ? tag : "[INFO]");
-   vfprintf(LOG_FILE, fmt, ap);
-   fflush(LOG_FILE);
+
+#ifdef HAVE_FILE_LOGGER
+   FILE *fp = retro_main_log_file();
+#else
+   FILE *fp = stderr;
+#endif
+   fprintf(fp, "%s %s :: ",
+         file_path_str(FILE_PATH_PROGRAM_NAME),
+         tag ? tag : file_path_str(FILE_PATH_LOG_INFO));
+   vfprintf(fp, fmt, ap);
+   fflush(fp);
 #endif
 }
 
@@ -158,7 +154,7 @@ void RARCH_LOG(const char *fmt, ...)
       return;
 
    va_start(ap, fmt);
-   RARCH_LOG_V("[INFO]", fmt, ap);
+   RARCH_LOG_V(file_path_str(FILE_PATH_LOG_INFO), fmt, ap);
    va_end(ap);
 }
 
@@ -171,7 +167,7 @@ void RARCH_LOG_OUTPUT(const char *msg, ...)
 {
    va_list ap;
    va_start(ap, msg);
-   RARCH_LOG_OUTPUT_V("[INFO]", msg, ap);
+   RARCH_LOG_OUTPUT_V(file_path_str(FILE_PATH_LOG_INFO), msg, ap);
    va_end(ap);
 }
 
@@ -184,7 +180,7 @@ void RARCH_WARN(const char *fmt, ...)
 {
    va_list ap;
    va_start(ap, fmt);
-   RARCH_WARN_V("[WARN]", fmt, ap);
+   RARCH_WARN_V(file_path_str(FILE_PATH_LOG_WARN), fmt, ap);
    va_end(ap);
 }
 
@@ -197,7 +193,7 @@ void RARCH_ERR(const char *fmt, ...)
 {
    va_list ap;
    va_start(ap, fmt);
-   RARCH_ERR_V("[ERROR]", fmt, ap);
+   RARCH_ERR_V(file_path_str(FILE_PATH_LOG_ERROR), fmt, ap);
    va_end(ap);
 }
 #endif

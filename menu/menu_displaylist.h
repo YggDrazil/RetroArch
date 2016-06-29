@@ -22,7 +22,7 @@
 #include <retro_common_api.h>
 #include <lists/file_list.h>
 
-#include "menu_hash.h"
+#include "../msg_hash.h"
 
 #ifndef COLLECTION_SIZE
 #define COLLECTION_SIZE 99999
@@ -103,6 +103,7 @@ enum menu_displaylist_ctl_state
    DISPLAYLIST_DRIVER_SETTINGS_LIST,
    DISPLAYLIST_VIDEO_SETTINGS_LIST,
    DISPLAYLIST_AUDIO_SETTINGS_LIST,
+   DISPLAYLIST_CORE_SETTINGS_LIST,
    DISPLAYLIST_INPUT_SETTINGS_LIST,
    DISPLAYLIST_INPUT_HOTKEY_BINDS_LIST,
    DISPLAYLIST_PLAYLIST_SETTINGS_LIST,
@@ -121,6 +122,7 @@ enum menu_displaylist_ctl_state
    DISPLAYLIST_ARCHIVE_ACTION,
    DISPLAYLIST_ARCHIVE_ACTION_DETECT_CORE,
    DISPLAYLIST_CORE_CONTENT,
+   DISPLAYLIST_CORE_CONTENT_DIRS,
    DISPLAYLIST_PROCESS,
    DISPLAYLIST_PUSH_ONTO_STACK,
    DISPLAYLIST_PENDING_CLEAR
@@ -146,6 +148,7 @@ typedef struct menu_displaylist_info
    unsigned type_default;
    size_t directory_ptr;
    unsigned flags;
+   enum msg_hash_enums enum_idx;
    rarch_setting_t *setting;
 } menu_displaylist_info_t;
 
@@ -154,7 +157,7 @@ typedef struct menu_displaylist_ctx_parse_entry
    void *data;
    menu_displaylist_info_t *info;
    const char *info_label;
-   enum menu_hash_enums enum_idx;
+   enum msg_hash_enums enum_idx;
    enum menu_displaylist_parse_type parse_type;
    bool add_empty_entry;
 } menu_displaylist_ctx_parse_entry_t;

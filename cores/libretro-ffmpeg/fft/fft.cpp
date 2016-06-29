@@ -305,6 +305,8 @@ static void fft_step(glfft_t *fft,
 
 static inline unsigned log2i(unsigned x)
 {
+   if (x==0) return 0xBADF00D4U; // shouldn't happen
+   
    unsigned res;
    for (res = 0; x; x >>= 1)
       res++;
@@ -711,6 +713,9 @@ static void fft_context_destroy(glfft_t *fft)
 
 extern "C" void glfft_free(glfft_t *fft)
 {
+   if (!fft)
+      return;
+
    fft_context_destroy(fft);
    if (fft)
       free(fft);

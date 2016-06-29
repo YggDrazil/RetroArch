@@ -47,12 +47,11 @@ typedef struct menu_entry
    char label[PATH_MAX_LENGTH];
    char value[PATH_MAX_LENGTH];
    size_t entry_idx;
+   enum msg_hash_enums enum_idx;
    unsigned idx;
    unsigned type;
    unsigned spacing;
 } menu_entry_t;
-
-int menu_entry_go_back(void);
 
 enum menu_entry_type menu_entry_get_type(uint32_t i);
 

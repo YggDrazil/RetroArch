@@ -22,7 +22,6 @@
 #include "../menu_display.h"
 #include "../menu_setting.h"
 #include "../menu_shader.h"
-#include "../menu_hash.h"
 
 #include "../../core_info.h"
 #include "../../managers/core_option_manager.h"
@@ -323,8 +322,7 @@ static int action_start_lookup_setting(unsigned type, const char *label)
 static int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       uint32_t hash)
 {
-#if 0
-   if (cbs->enum_idx != MENU_ENUM_LABEL_UNKNOWN)
+   if (cbs->enum_idx != MSG_UNKNOWN)
    {
       switch (cbs->enum_idx)
       {
@@ -356,7 +354,6 @@ static int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
       }
    }
    else
-#endif
    {
       switch (hash)
       {
@@ -377,9 +374,6 @@ static int menu_cbs_init_bind_start_compare_label(menu_file_list_cbs_t *cbs,
             break;
          case MENU_LABEL_VIDEO_SHADER_NUM_PASSES:
             BIND_ACTION_START(cbs, action_start_shader_num_passes);
-            break;
-         case MENU_LABEL_CHEAT_NUM_PASSES:
-            BIND_ACTION_START(cbs, action_start_cheat_num_passes);
             break;
          case MENU_LABEL_SCREEN_RESOLUTION:
             BIND_ACTION_START(cbs, action_start_video_resolution);

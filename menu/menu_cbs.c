@@ -18,7 +18,6 @@
 #include <lists/string_list.h>
 
 #include "menu_driver.h"
-#include "menu_hash.h"
 #include "menu_cbs.h"
 #include "../verbosity.h"
 
@@ -47,7 +46,7 @@ void menu_cbs_init(void *data,
    const char *menu_label        = NULL;
    uint32_t label_hash           = 0;
    uint32_t menu_label_hash      = 0;
-   enum menu_hash_enums enum_idx = MENU_ENUM_LABEL_UNKNOWN;
+   enum msg_hash_enums enum_idx  = MSG_UNKNOWN;
    file_list_t *list             = (file_list_t*)data;
    if (!list)
       return;
@@ -68,8 +67,8 @@ void menu_cbs_init(void *data,
    if (!label || !menu_label)
       goto error;
 
-   label_hash      = menu_hash_calculate(label);
-   menu_label_hash = menu_hash_calculate(menu_label);
+   label_hash      = msg_hash_calculate(label);
+   menu_label_hash = msg_hash_calculate(menu_label);
 
 #ifdef DEBUG_LOG
    RARCH_LOG("\n");
@@ -77,11 +76,16 @@ void menu_cbs_init(void *data,
 
    repr_label = (!string_is_empty(label)) ? label : path;
 
+#ifdef DEBUG_LOG
+   if (cbs && cbs->enum_idx != MSG_UNKNOWN)
+      RARCH_LOG("\t\t\tenum_idx %d [%s]\n", cbs->enum_idx, msg_hash_to_str(cbs->enum_idx));
+#endif
+
    menu_cbs_init_bind_ok(cbs, path, label, type, idx, elem0, elem1, menu_label, label_hash, menu_label_hash);
 
    menu_cbs_init_log(repr_label, "OK", cbs->action_ok_ident);
 
-   menu_cbs_init_bind_cancel(cbs, path, label, type, idx, elem0, elem1, label_hash, menu_label_hash);
+   menu_cbs_init_bind_cancel(cbs, path, label, type, idx, elem0, elem1, menu_label, label_hash, menu_label_hash);
 
    menu_cbs_init_log(repr_label, "CANCEL", cbs->action_cancel_ident);
 

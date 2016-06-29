@@ -24,7 +24,6 @@
 #include "cheevos.h"
 #include "command.h"
 #include "dynamic.h"
-#include "libretro.h"
 #include "system.h"
 #include "network/net_http_special.h"
 #include "tasks/tasks_internal.h"
@@ -353,7 +352,7 @@ static int cheevos_getvalue__json_boolean(void *userdata, int istrue)
 
    if ( ud->is_key )
    {
-      ud->value = istrue ? "true" : "false";
+      ud->value  = istrue ? "true" : "false";
       ud->length = istrue ? 4 : 5;
       ud->is_key = 0;
    }
@@ -446,10 +445,17 @@ static int cheevos_count__json_number(void *userdata,
    {
       flags = strtol(number, NULL, 10);
 
-      if (flags == 3) /* core achievements */
-         ud->core_count++;
-      else if (flags == 5) /* unofficial achievements */
-         ud->unofficial_count++;
+      switch (flags)
+      {
+         case 3:  /* Core achievements */
+            ud->core_count++;
+            break;
+         case 5:  /* Unofficial achievements */
+            ud->unofficial_count++;
+            break;
+         default:
+            break;
+      }
    }
 
    return 0;
@@ -602,41 +608,39 @@ void cheevos_parse_guest_addr(cheevos_var_t *var, unsigned value)
    runloop_ctl(RUNLOOP_CTL_SYSTEM_INFO_GET, &system);
    
    var->bank_id = -1;
-   var->value = value;
+   var->value   = value;
    
    if (system->mmaps.num_descriptors != 0)
    {
-      const struct retro_memory_descriptor *desc;
-      const struct retro_memory_descriptor *end;
+      const struct retro_memory_descriptor *desc = NULL;
+      const struct retro_memory_descriptor *end  = NULL;
       
-      if (cheevos_locals.console_id == CHEEVOS_CONSOLE_GAMEBOY_ADVANCE)
+      switch (cheevos_locals.console_id)
       {
-         /* Patch the address to correctly map it to the mmaps */
-         if (var->value < 0x8000)
-         {
-            /* Internal RAM */
-            var->value += 0x3000000;
-         }
-         else
-         {
-            /* Work RAM */
-            var->value += 0x2000000 - 0x8000;
-         }
-      }
-      else if (cheevos_locals.console_id == CHEEVOS_CONSOLE_PC_ENGINE)
-      {
-         var->value += 0x1f0000;
+         case CHEEVOS_CONSOLE_GAMEBOY_ADVANCE:
+            /* Patch the address to correctly map it to the mmaps */
+
+            if (var->value < 0x8000) /* Internal RAM */
+               var->value += 0x3000000;
+            else                     /* Work RAM */
+               var->value += 0x2000000 - 0x8000;
+            break;
+         case CHEEVOS_CONSOLE_PC_ENGINE:
+            var->value += 0x1f0000;
+            break;
+         default:
+            break;
       }
      
       desc = system->mmaps.descriptors;
-      end = desc + system->mmaps.num_descriptors;
+      end  = desc + system->mmaps.num_descriptors;
       
       for (; desc < end; desc++)
       {
          if ((var->value & desc->select) == desc->start)
          {
             var->bank_id = desc - system->mmaps.descriptors;
-            var->value = var->value - desc->start + desc->offset;
+            var->value   = var->value - desc->start + desc->offset;
             break;
          }
       }
@@ -695,15 +699,19 @@ static void cheevos_parse_var(cheevos_var_t *var, const char **memaddr)
    }
 
    var->value = strtol(str, &end, base);
-   *memaddr = end;
+   *memaddr   = end;
    
-   if (   var->type == CHEEVOS_VAR_TYPE_ADDRESS 
-       || var->type == CHEEVOS_VAR_TYPE_DELTA_MEM)
+   switch (var->type)
    {
-      cheevos_parse_guest_addr(var, var->value);
+      case CHEEVOS_VAR_TYPE_ADDRESS:
+      case CHEEVOS_VAR_TYPE_DELTA_MEM:
+         cheevos_parse_guest_addr(var, var->value);
 #ifdef CHEEVOS_DUMP_ADDRS
-      RARCH_LOG("CHEEVOS var %03d:%08X\n", var->bank_id + 1, var->value);
+         RARCH_LOG("CHEEVOS var %03d:%08X\n", var->bank_id + 1, var->value);
 #endif
+         break;
+      default:
+         break;
    }
 }
 
@@ -1521,7 +1529,6 @@ Load achievements from retroachievements.org.
 static int cheevos_get_by_game_id(const char **json,
       unsigned game_id, retro_time_t *timeout)
 {
-   char request[256];
    settings_t *settings = config_get_ptr();
 
    /* Just return OK if cheevos are disabled. */
@@ -1530,6 +1537,7 @@ static int cheevos_get_by_game_id(const char **json,
 
    if (!cheevos_login(timeout))
    {
+      char request[256] = {0};
       snprintf(
          request, sizeof(request),
          "http://retroachievements.org/dorequest.php?r=patch&u=%s&g=%u&f=3&l=1&t=%s",
@@ -1719,13 +1727,14 @@ static int cheevos_deactivate_unlocks(unsigned game_id, retro_time_t *timeout)
    };
    
    int res;
-   char request[256];
    cheevos_deactivate_t ud;
    const char* json             = NULL;
-   settings_t *settings         = config_get_ptr();
    
    if (!cheevos_login(timeout))
    {
+      char request[256]    = {0};
+      settings_t *settings = config_get_ptr();
+
       snprintf(
          request, sizeof(request),
          "http://retroachievements.org/dorequest.php?r=unlocks&u=%s&t=%s&g=%u&h=0",
@@ -2075,8 +2084,8 @@ bool cheevos_load(const void *data)
    
    cheevos_locals.loaded = 0;
    
-   /* Just return OK if cheevos are disabled, the core doesn't support cheevos, or info is NULL. */
-   if (!settings->cheevos.enable || !cheevos_locals.core_supports || !info)
+   /* Just return OK if the core doesn't support cheevos, or info is NULL. */
+   if (!cheevos_locals.core_supports || !info)
       return true;
    
    cheevos_locals.meminfo[0].id = RETRO_MEMORY_SYSTEM_RAM;
@@ -2091,8 +2100,11 @@ bool cheevos_load(const void *data)
    cheevos_locals.meminfo[3].id = RETRO_MEMORY_RTC;
    core_get_memory(&cheevos_locals.meminfo[3]);
    
-   /* The the supported extensions as a hint to what method we should use. */
+   /* Bail out if cheevos are disabled. But set the above anyways, command_read_ram needs it. */
+   if (!settings->cheevos.enable)
+      return true;
    
+   /* Use the supported extensions as a hint to what method we should use. */
    core_get_system_info(&sysinfo);
    
    for (i = 0; i < sizeof(finders) / sizeof(finders[0]); i++)
@@ -2186,11 +2198,11 @@ void cheevos_populate_menu(void *data)
    menu_displaylist_info_t *info = (menu_displaylist_info_t*)data;
    
    menu_entries_add_enum(info->list,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCKED_ACHIEVEMENTS),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_CHEEVOS_UNLOCKED_ACHIEVEMENTS),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_UNLOCKED_ACHIEVEMENTS),
+         msg_hash_to_str(MENU_ENUM_LABEL_CHEEVOS_UNLOCKED_ACHIEVEMENTS),
          MENU_ENUM_LABEL_CHEEVOS_UNLOCKED_ACHIEVEMENTS,
          MENU_SETTINGS_CHEEVOS_NONE, 0, 0);
-   menu_entries_add_enum(info->list, "", "", MENU_ENUM_LABEL_UNKNOWN,
+   menu_entries_add_enum(info->list, "", "", MENU_ENUM_LABEL_CHEEVOS_UNLOCKED_ACHIEVEMENTS,
          MENU_SETTINGS_CHEEVOS_NONE, 0, 0);
 
    cheevo = cheevos_locals.core.cheevos;
@@ -2200,7 +2212,7 @@ void cheevos_populate_menu(void *data)
    {
       if (!cheevo->active)
          menu_entries_add_enum(info->list, cheevo->title,
-               cheevo->description, MENU_ENUM_LABEL_UNKNOWN, 
+               cheevo->description, MSG_UNKNOWN, 
                MENU_SETTINGS_CHEEVOS_START + i, 0, 0);
    }
    
@@ -2214,19 +2226,19 @@ void cheevos_populate_menu(void *data)
       {
          if (!cheevo->active)
             menu_entries_add_enum(info->list, cheevo->title,
-                  cheevo->description, MENU_ENUM_LABEL_UNKNOWN,
+                  cheevo->description, MSG_UNKNOWN,
                   MENU_SETTINGS_CHEEVOS_START + i, 0, 0);
       }
    }
    
-   menu_entries_add_enum(info->list, "", "", MENU_ENUM_LABEL_UNKNOWN,
+   menu_entries_add_enum(info->list, "", "", MSG_UNKNOWN,
          MENU_SETTINGS_CHEEVOS_NONE, 0, 0);
    menu_entries_add_enum(info->list,
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_VALUE_CHEEVOS_LOCKED_ACHIEVEMENTS),
-         menu_hash_to_str_enum(MENU_ENUM_LABEL_CHEEVOS_LOCKED_ACHIEVEMENTS),
+         msg_hash_to_str(MENU_ENUM_LABEL_VALUE_CHEEVOS_LOCKED_ACHIEVEMENTS),
+         msg_hash_to_str(MENU_ENUM_LABEL_CHEEVOS_LOCKED_ACHIEVEMENTS),
          MENU_ENUM_LABEL_CHEEVOS_LOCKED_ACHIEVEMENTS,
          MENU_SETTINGS_CHEEVOS_NONE, 0, 0);
-   menu_entries_add_enum(info->list, "", "", MENU_ENUM_LABEL_UNKNOWN,
+   menu_entries_add_enum(info->list, "", "", MENU_ENUM_LABEL_CHEEVOS_LOCKED_ACHIEVEMENTS,
          MENU_SETTINGS_CHEEVOS_NONE, 0, 0);
 
    cheevo = cheevos_locals.core.cheevos;
@@ -2236,7 +2248,7 @@ void cheevos_populate_menu(void *data)
    {
       if (cheevo->active)
          menu_entries_add_enum(info->list, cheevo->title,
-               cheevo->description, MENU_ENUM_LABEL_UNKNOWN,
+               cheevo->description, MSG_UNKNOWN,
                MENU_SETTINGS_CHEEVOS_START + i, 0, 0);
    }
    
@@ -2250,7 +2262,7 @@ void cheevos_populate_menu(void *data)
       {
          if (cheevo->active)
             menu_entries_add_enum(info->list, cheevo->title,
-                  cheevo->description, MENU_ENUM_LABEL_UNKNOWN, 
+                  cheevo->description, MSG_UNKNOWN, 
                   MENU_SETTINGS_CHEEVOS_START + i, 0, 0);
       }
    }
@@ -2319,12 +2331,12 @@ bool cheevos_toggle_hardcore_mode(void)
 
 bool cheevos_test(void)
 {
-   settings_t *settings = config_get_ptr();
    if (!cheevos_locals.loaded)
       return false;
 
    if (!cheats_are_enabled && !cheats_were_enabled)
    {
+      settings_t *settings = config_get_ptr();
       if (!settings->cheevos.enable)
          return false;
 

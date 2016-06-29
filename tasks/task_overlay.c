@@ -24,6 +24,7 @@
 
 #include "tasks_internal.h"
 
+#include "../file_path_special.h"
 #include "../input/input_config.h"
 #include "../input/input_overlay.h"
 #include "../configuration.h"
@@ -94,6 +95,7 @@ static bool task_overlay_load_desc(
       bool normalized, float alpha_mod, float range_mod)
 {
    float width_mod, height_mod;
+   float tmp_float;
    uint32_t box_hash, key_hash;
    bool tmp_bool                        = false;
    bool ret                             = true;
@@ -114,7 +116,8 @@ static bool task_overlay_load_desc(
 
    snprintf(overlay_desc_normalized_key, sizeof(overlay_desc_normalized_key),
          "overlay%u_desc%u_normalized", ol_idx, desc_idx);
-   config_get_bool(conf, overlay_desc_normalized_key, &normalized);
+   if (config_get_bool(conf, overlay_desc_normalized_key, &tmp_bool))
+      normalized = tmp_bool;
 
    by_pixel = !normalized;
 
@@ -181,7 +184,7 @@ static bool task_overlay_load_desc(
 
             for (; tmp; tmp = strtok_r(NULL, "|", &save))
             {
-               if (!string_is_equal(tmp, "nul"))
+               if (!string_is_equal(tmp, file_path_str(FILE_PATH_NUL)))
                   desc->key_mask |= UINT64_C(1) 
                      << input_config_translate_str_to_bind_id(tmp);
             }
@@ -242,8 +245,10 @@ static bool task_overlay_load_desc(
             snprintf(overlay_analog_saturate_key,
                   sizeof(overlay_analog_saturate_key),
                   "overlay%u_desc%u_saturate_pct", ol_idx, desc_idx);
-            if (!config_get_float(conf, overlay_analog_saturate_key,
-                     &desc->analog_saturate_pct))
+            if (config_get_float(conf, overlay_analog_saturate_key,
+                     &tmp_float))
+               desc->analog_saturate_pct = tmp_float;
+            else
                desc->analog_saturate_pct = 1.0f;
          }
          break;
@@ -264,12 +269,14 @@ static bool task_overlay_load_desc(
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_alpha_mod", ol_idx, desc_idx);
    desc->alpha_mod = alpha_mod;
-   config_get_float(conf, conf_key, &desc->alpha_mod);
+   if (config_get_float(conf, conf_key, &tmp_float))
+         desc->alpha_mod = tmp_float;
 
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_range_mod", ol_idx, desc_idx);
    desc->range_mod = range_mod;
-   config_get_float(conf, conf_key, &desc->range_mod);
+   if (config_get_float(conf, conf_key, &tmp_float))
+      desc->range_mod = tmp_float;
 
    snprintf(conf_key, sizeof(conf_key),
          "overlay%u_desc%u_movable", ol_idx, desc_idx);
@@ -391,6 +398,7 @@ static void task_overlay_deferred_load(retro_task_t *task)
       struct texture_image *texture_img = NULL;
       struct overlay_desc *overlay_desc = NULL;
       struct overlay          *overlay  = NULL;
+      char tmp_str[PATH_MAX_LENGTH]     = {0};
       bool                     to_cont  = loader->pos < loader->size;
 
       if (!to_cont)
@@ -428,7 +436,8 @@ static void task_overlay_deferred_load(retro_task_t *task)
       snprintf(overlay_full_screen_key, sizeof(overlay_full_screen_key),
             "overlay%u_full_screen", loader->pos);
       overlay->full_screen = false;
-      config_get_bool(conf, overlay_full_screen_key, &overlay->full_screen);
+      if (config_get_bool(conf, overlay_full_screen_key, &tmp_bool))
+         overlay->full_screen = tmp_bool;
 
       overlay->config.normalized = false;
       overlay->config.alpha_mod  = 1.0f;
@@ -463,8 +472,10 @@ static void task_overlay_deferred_load(retro_task_t *task)
       snprintf(overlay->config.paths.key, sizeof(overlay->config.paths.key),
             "overlay%u_overlay", loader->pos);
 
-      config_get_path(conf, overlay->config.paths.key,
-               overlay->config.paths.path, sizeof(overlay->config.paths.path));
+      if (config_get_path(conf, overlay->config.paths.key,
+               tmp_str, sizeof(tmp_str)))
+         strlcpy(overlay->config.paths.path,
+               tmp_str, sizeof(overlay->config.paths.path));
 
       if (!string_is_empty(overlay->config.paths.path))
       {
@@ -559,10 +570,10 @@ static bool task_overlay_resolve_targets(struct overlay *ol,
 
    for (i = 0; i < current->size; i++)
    {
-      const char *next = current->descs[i].next_index_name;
       ssize_t next_idx  = 0;
+      const char *next = current->descs[i].next_index_name;
 
-      if (*next)
+      if (!string_is_empty(next))
       {
          next_idx = task_overlay_find_index(ol, next, size);
 

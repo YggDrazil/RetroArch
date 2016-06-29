@@ -78,13 +78,13 @@ static bool init_playback(bsv_movie_t *handle, const char *path)
 
    if (!handle->file)
    {
-      RARCH_ERR("Couldn't open BSV file \"%s\" for playback.\n", path);
+      RARCH_ERR("Could not open BSV file \"%s\" for playback.\n", path);
       return false;
    }
 
    if (fread(header, sizeof(uint32_t), 4, handle->file) != 4)
    {
-      RARCH_ERR("Couldn't read movie header.\n");
+      RARCH_ERR("%s\n", msg_hash_to_str(MSG_COULD_NOT_READ_MOVIE_HEADER));
       return false;
    }
 
@@ -93,14 +93,14 @@ static bool init_playback(bsv_movie_t *handle, const char *path)
    if (swap_if_little32(header[MAGIC_INDEX]) != BSV_MAGIC
          && swap_if_big32(header[MAGIC_INDEX]) != BSV_MAGIC)
    {
-      RARCH_ERR("Movie file is not a valid BSV1 file.\n");
+      RARCH_ERR("%s\n", msg_hash_to_str(MSG_MOVIE_FILE_IS_NOT_A_VALID_BSV1_FILE));
       return false;
    }
 
    content_get_crc(&content_crc_ptr);
 
    if (swap_if_big32(header[CRC_INDEX]) != *content_crc_ptr)
-      RARCH_WARN("CRC32 checksum mismatch between content file and saved content checksum in replay file header; replay highly likely to desync on playback.\n");
+      RARCH_WARN("%s.\n", msg_hash_to_str(MSG_CRC32_CHECKSUM_MISMATCH));
 
    state_size = swap_if_big32(header[STATE_SIZE_INDEX]);
 
@@ -116,7 +116,7 @@ static bool init_playback(bsv_movie_t *handle, const char *path)
 
       if (fread(handle->state, 1, state_size, handle->file) != state_size)
       {
-         RARCH_ERR("Couldn't read state from movie.\n");
+         RARCH_ERR("%s\n", msg_hash_to_str(MSG_COULD_NOT_READ_STATE_FROM_MOVIE));
          return false;
       }
 
@@ -129,7 +129,8 @@ static bool init_playback(bsv_movie_t *handle, const char *path)
          core_unserialize(&serial_info);
       }
       else
-         RARCH_WARN("Movie format seems to have a different serializer version. Will most likely fail.\n");
+         RARCH_WARN("%s\n",
+               msg_hash_to_str(MSG_MOVIE_FORMAT_DIFFERENT_SERIALIZER_VERSION));
    }
 
    handle->min_file_pos = sizeof(header) + state_size;
@@ -147,7 +148,7 @@ static bool init_record(bsv_movie_t *handle, const char *path)
    handle->file       = fopen(path, "wb");
    if (!handle->file)
    {
-      RARCH_ERR("Couldn't open BSV \"%s\" for recording.\n", path);
+      RARCH_ERR("Could not open BSV \"%s\" for recording.\n", path);
       return false;
    }
 

@@ -33,18 +33,6 @@
  * notify_list_loaded on the UI companion.
  */
 
-/* Clicks the back button */
-int menu_entry_go_back(void)
-{
-   size_t new_selection_ptr;
-
-   menu_navigation_ctl(MENU_NAVIGATION_CTL_GET_SELECTION, &new_selection_ptr);
-   menu_entries_pop_stack(&new_selection_ptr, 0, 1);
-   menu_navigation_ctl(MENU_NAVIGATION_CTL_SET_SELECTION, &new_selection_ptr);
-
-   return 0;
-}
-
 enum menu_entry_type menu_entry_get_type(uint32_t i)
 {
    rarch_setting_t *setting  = menu_entries_get_setting(i);
@@ -288,17 +276,22 @@ void menu_entry_get(menu_entry_t *entry, size_t stack_idx,
 
    cbs = menu_entries_get_actiondata_at_offset(list, i);
 
-   if (cbs && cbs->action_get_value && use_representation)
+   if (cbs)
    {
-      enum menu_hash_enums enum_idx = MENU_ENUM_LABEL_UNKNOWN;
-      const char *label             = NULL;
-      menu_entries_get_last_stack(NULL, &label, NULL, &enum_idx, NULL);
+      entry->enum_idx    = cbs->enum_idx;
 
-      cbs->action_get_value(list,
-            &entry->spacing, entry->type, i, label,
-            entry->value,  sizeof(entry->value), 
-            entry_label, path,
-            entry->path, sizeof(entry->path));
+      if (cbs->action_get_value && use_representation)
+      {
+         enum msg_hash_enums enum_idx  = MSG_UNKNOWN;
+         const char *label             = NULL;
+         menu_entries_get_last_stack(NULL, &label, NULL, &enum_idx, NULL);
+
+         cbs->action_get_value(list,
+               &entry->spacing, entry->type, i, label,
+               entry->value,  sizeof(entry->value), 
+               entry_label, path,
+               entry->path, sizeof(entry->path));
+      }
    }
 
    entry->idx         = i;

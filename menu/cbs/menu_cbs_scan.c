@@ -44,7 +44,7 @@ int action_scan_file(const char *path,
       const char *label, unsigned type, size_t idx)
 {
    char fullpath[PATH_MAX_LENGTH] = {0};
-   enum menu_hash_enums enum_idx  = MENU_ENUM_LABEL_UNKNOWN;
+   enum msg_hash_enums enum_idx  = MSG_UNKNOWN;
    const char *menu_label         = NULL;
    const char *menu_path          = NULL;
    menu_handle_t *menu            = NULL;
@@ -65,7 +65,7 @@ int action_scan_directory(const char *path,
       const char *label, unsigned type, size_t idx)
 {
    char fullpath[PATH_MAX_LENGTH] = {0};
-   enum menu_hash_enums enum_idx  = MENU_ENUM_LABEL_UNKNOWN;
+   enum msg_hash_enums enum_idx  = MSG_UNKNOWN;
    const char *menu_label         = NULL;
    const char *menu_path          = NULL;
    menu_handle_t *menu            = NULL;
@@ -113,19 +113,19 @@ static int menu_cbs_init_bind_scan_compare_type(menu_file_list_cbs_t *cbs,
    switch (type)
    {
 #ifdef HAVE_LIBRETRODB
-      case MENU_FILE_DIRECTORY:
+      case FILE_TYPE_DIRECTORY:
          BIND_ACTION_SCAN(cbs, action_scan_directory);
          return 0;
-      case MENU_FILE_CARCHIVE:
-      case MENU_FILE_PLAIN:
+      case FILE_TYPE_CARCHIVE:
+      case FILE_TYPE_PLAIN:
          BIND_ACTION_SCAN(cbs, action_scan_file);
          return 0;
 #endif
-      case MENU_FILE_RPL_ENTRY:
+      case FILE_TYPE_RPL_ENTRY:
          BIND_ACTION_SCAN(cbs, action_switch_thumbnail);
          break;
 
-      case MENU_FILE_NONE:
+      case FILE_TYPE_NONE:
       default:
          break;
    }

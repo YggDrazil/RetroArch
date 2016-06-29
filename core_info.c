@@ -24,6 +24,7 @@
 
 #include "core_info.h"
 #include "configuration.h"
+#include "file_path_special.h"
 #include "list_special.h"
 #include "config.def.h"
 
@@ -103,7 +104,7 @@ static void core_info_list_resolve_all_firmware(
 
          snprintf(path_key, sizeof(path_key), "firmware%u_path", c);
          snprintf(desc_key, sizeof(desc_key), "firmware%u_desc", c);
-         snprintf(opt_key, sizeof(opt_key), "firmware%u_opt", c);
+         snprintf(opt_key,  sizeof(opt_key),  "firmware%u_opt",  c);
 
          config_get_string(config, path_key, &info->firmware[c].path);
          config_get_string(config, desc_key, &info->firmware[c].desc);
@@ -168,9 +169,8 @@ static config_file_t *core_info_list_iterate(
    if (!contents->elems[i].data)
       return NULL;
 
-   fill_pathname_base(info_path_base, contents->elems[i].data,
+   fill_pathname_base_noext(info_path_base, contents->elems[i].data,
          sizeof(info_path_base));
-   path_remove_extension(info_path_base);
 
 #if defined(RARCH_MOBILE) || (defined(RARCH_CONSOLE) && !defined(PSP))
    char *substr = strrchr(info_path_base, '_');
@@ -178,9 +178,12 @@ static config_file_t *core_info_list_iterate(
       *substr = '\0';
 #endif
 
-   strlcat(info_path_base, ".info", sizeof(info_path_base));
+   strlcat(info_path_base,
+         file_path_str(FILE_PATH_CORE_INFO_EXTENSION),
+         sizeof(info_path_base));
 
-   fill_pathname_join(info_path, (*settings->path.libretro_info) ?
+   fill_pathname_join(info_path,
+         (!string_is_empty(settings->path.libretro_info)) ?
          settings->path.libretro_info : settings->directory.libretro,
          info_path_base, sizeof(info_path));
 

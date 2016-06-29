@@ -241,7 +241,8 @@ static dylib_t libretro_get_system_info_lib(const char *path,
 
    if (!lib)
    {
-      RARCH_ERR("Failed to open libretro core: \"%s\"\n",
+      RARCH_ERR("%s: \"%s\"\n",
+            msg_hash_to_str(MSG_FAILED_TO_OPEN_LIBRETRO_CORE),
             path);
       RARCH_ERR("Error(s): %s\n", dylib_error());
       return NULL;
@@ -1433,9 +1434,7 @@ bool rarch_environment_cb(unsigned cmd, void *data)
          {
             RARCH_WARN("Environ SET_MEMORY_MAPS, but system pointer not initialized..\n");
          }
-         
-         
-         
+
          break;
       }
 
@@ -1494,7 +1493,16 @@ bool rarch_environment_cb(unsigned cmd, void *data)
             cheevos_set_support_cheevos(state);
          }
 #endif
-      break;
+         break;
+
+      case RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE:
+      {
+         const struct retro_hw_render_context_negotiation_interface *iface =
+            (const struct retro_hw_render_context_negotiation_interface*)data;
+         RARCH_LOG("Environ SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE.\n");
+         video_driver_set_context_negotiation_interface(iface);
+         break;
+      }
 
       /* Default */
       default:

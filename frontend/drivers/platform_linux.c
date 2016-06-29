@@ -1827,18 +1827,18 @@ static int frontend_android_parse_drive_list(void *data)
 {
    file_list_t *list = (file_list_t*)data;
 
-   // MENU_FILE_DIRECTORY is not working with labels, placeholders for now
+   /* FILE_TYPE_DIRECTORY is not working with labels, placeholders for now */
    menu_entries_add_enum(list,
-         app_dir, "Application Dir", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         app_dir, "Application Dir", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         internal_storage_app_path, "External Application Dir", MENU_ENUM_LABEL_UNKNOWN,
-         MENU_FILE_DIRECTORY, 0, 0);
+         internal_storage_app_path, "External Application Dir", MSG_UNKNOWN,
+         FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
          internal_storage_path, "Internal Memory",
-         MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
 
    menu_entries_add_enum(list, "/", "",
-         MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
 
    return 0;
 }
@@ -1912,16 +1912,51 @@ static void frontend_linux_exitspawn(char *core_path, size_t core_path_size)
 
 static uint64_t frontend_linux_get_mem_total(void)
 {
-   long pages     = sysconf(_SC_PHYS_PAGES);
-   long page_size = sysconf(_SC_PAGE_SIZE);
-   return pages * page_size;
+   char line[256];
+   uint64_t total = 0;
+   FILE    * data = fopen("/proc/meminfo", "r");
+   if (!data)
+      return 0;
+
+   while (fgets(line, sizeof(line), data))
+   {
+      if (sscanf(line, "MemTotal: " STRING_REP_ULONG " kB", (size_t*)&total) == 1)
+      {
+         fclose(data);
+         total *= 1024;
+         return total;
+      }
+   }
+
+   fclose(data);
+   return 0;
 }
 
 static uint64_t frontend_linux_get_mem_used(void)
 {
-   long pages     = sysconf(_SC_AVPHYS_PAGES);
-   long page_size = sysconf(_SC_PAGE_SIZE);
-   return pages * page_size;
+   char line[256];
+   uint64_t total    = 0;
+   uint64_t freemem  = 0;
+   uint64_t buffers  = 0;
+   uint64_t cached   = 0;
+   FILE* data = fopen("/proc/meminfo", "r");
+   if (!data)
+      return 0;
+
+   while (fgets(line, sizeof(line), data))
+   {
+      if (sscanf(line, "MemTotal: " STRING_REP_ULONG " kB", (size_t*)&total)  == 1)
+         total   *= 1024;
+      if (sscanf(line, "MemFree: " STRING_REP_ULONG " kB", (size_t*)&freemem) == 1)
+         freemem *= 1024;
+      if (sscanf(line, "Buffers: " STRING_REP_ULONG " kB", (size_t*)&buffers) == 1)
+         buffers *= 1024;
+      if (sscanf(line, "Cached: " STRING_REP_ULONG " kB", (size_t*)&cached)   == 1)
+         cached  *= 1024;
+   }
+
+   fclose(data);
+   return total - freemem - buffers - cached;
 }
 
 frontend_ctx_driver_t frontend_ctx_linux = {

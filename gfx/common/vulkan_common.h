@@ -107,6 +107,11 @@ typedef struct vulkan_context
    VkFormat swapchain_format;
 
    slock_t *queue_lock;
+   retro_vulkan_destroy_device_t destroy_device;
+
+#ifdef VULKAN_DEBUG
+   VkDebugReportCallbackEXT debug_callback;
+#endif
 
    /* Used by screenshot to get blits with correct colorspace. */
    bool swapchain_is_srgb;
@@ -349,6 +354,7 @@ typedef struct vk
       const struct retro_vulkan_image *image;
       const VkSemaphore *semaphores;
       uint32_t num_semaphores;
+      VkSemaphore signal_semaphore;
 
       VkPipelineStageFlags *wait_dst_stages;
 
@@ -358,8 +364,10 @@ typedef struct vk
 
       unsigned last_width;
       unsigned last_height;
+      uint32_t src_queue_family;
 
       bool enable;
+      bool valid_semaphore;
    } hw;
 
    struct
@@ -392,6 +400,13 @@ struct vk_texture vulkan_create_texture(vk_t *vk,
       enum vk_texture_type type);
 
 void vulkan_transition_texture(vk_t *vk, struct vk_texture *texture);
+
+void vulkan_transfer_image_ownership(VkCommandBuffer cmd,
+      VkImage image, VkImageLayout layout,
+      VkPipelineStageFlags src_stages,
+      VkPipelineStageFlags dst_stages,
+      uint32_t src_queue_family,
+      uint32_t dst_queue_family);
 
 void vulkan_map_persistent_texture(
       VkDevice device,

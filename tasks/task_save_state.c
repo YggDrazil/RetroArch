@@ -31,7 +31,9 @@
 #include <file/file_path.h>
 
 #include "../core.h"
+#include "../configuration.h"
 #include "../msg_hash.h"
+#include "../runloop.h"
 #include "../verbosity.h"
 #include "tasks_internal.h"
 
@@ -66,14 +68,13 @@ struct sram_block
 bool content_undo_load_state()
 {
    unsigned i;
-   //ssize_t size;
    retro_ctx_serialize_info_t serial_info;
+   size_t temp_data_size;
+   void* temp_data           = NULL;
    unsigned num_blocks       = 0;
-   //void *buf                 = NULL;
    struct sram_block *blocks = NULL;
    settings_t *settings      = config_get_ptr();
    global_t *global          = global_get_ptr();
-   //bool ret                  = filestream_read_file(path, &buf, &size);
 
    RARCH_LOG("%s: \"%s\".\n",
          msg_hash_to_str(MSG_LOADING_STATE),
@@ -136,8 +137,8 @@ bool content_undo_load_state()
    }
    
    /* We need to make a temporary copy of the buffer, to allow the swap below */
-   void* temp_data = malloc(undo_load_buf.size);
-   size_t temp_data_size = undo_load_buf.size;
+   temp_data              = malloc(undo_load_buf.size);
+   temp_data_size         = undo_load_buf.size;
    memcpy(temp_data, undo_load_buf.data, undo_load_buf.size);
 
    serial_info.data_const = temp_data;
@@ -150,8 +151,8 @@ bool content_undo_load_state()
 
    /* Clean up the temporary copy */
    free(temp_data);
-   temp_data = NULL;
-   temp_data_size = 0;
+   temp_data              = NULL;
+   temp_data_size         = 0;
 
    /* Flush back. */
    for (i = 0; i < num_blocks; i++)
@@ -190,7 +191,7 @@ bool content_undo_load_state()
  *
  * Returns: true if successful, false otherwise.
  **/
-bool content_undo_save_state()
+bool content_undo_save_state(void)
 {
    bool ret = filestream_write_file(undo_save_buf.path, undo_save_buf.data, undo_save_buf.size);
 
@@ -286,7 +287,7 @@ bool content_save_state(const char *path, bool save_to_disk)
 
          memcpy(undo_load_buf.data, data, info.size);
          undo_load_buf.size = info.size;
-         strcpy(undo_load_buf.path, path);
+         strlcpy(undo_load_buf.path, path, sizeof(undo_load_buf.path));
       }
    }
    else
@@ -351,7 +352,7 @@ bool content_load_state(const char *path, bool load_to_backup_buffer)
 
       memcpy(undo_save_buf.data, buf, size);
       undo_save_buf.size = size;
-      strcpy(undo_save_buf.path, path);
+      strlcpy(undo_save_buf.path, path, sizeof(undo_save_buf.path));
 
       free(buf);
       return true;
@@ -460,7 +461,7 @@ bool content_rename_state(const char *origin, const char *dest)
    if (!ret)
       return true;
 
-   RARCH_LOG ("Error %d renaming file %s", ret, origin);
+   RARCH_LOG("Error %d renaming file %s\n", ret, origin);
    return false;
 }
 
@@ -470,9 +471,9 @@ bool content_rename_state(const char *origin, const char *dest)
 * As it is, when e.g. closing Gambatte, we get the same printf message 4 times.
 *
 */
-bool content_reset_savestate_backups()
+bool content_reset_savestate_backups(void)
 {
-   printf("Resetting undo buffers.\n");
+   RARCH_LOG("Resetting undo buffers.\n");
 
    if (undo_save_buf.data)
    {

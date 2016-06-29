@@ -32,9 +32,6 @@
 #include "tasks_internal.h"
 #include "../verbosity.h"
 
-#define CB_MENU_WALLPAPER     0xb476e505U
-#define CB_MENU_THUMBNAIL     0x82f93a21U
-
 enum image_status_enum
 {
    IMAGE_STATUS_POLL = 0,
@@ -322,22 +319,15 @@ bool task_image_load_handler(retro_task_t *task)
 }
 
 bool task_push_image_load(const char *fullpath,
-      const char *type, retro_task_callback_t cb, void *user_data)
+      enum msg_hash_enums enum_idx, retro_task_callback_t cb, void *user_data)
 {
    nbio_handle_t             *nbio   = NULL;
    retro_task_t             *t       = NULL;
-   uint32_t             cb_type_hash = djb2_calculate(type);
    struct nbio_t             *handle = NULL;
    nbio_image_handle_t        *image = NULL;
 
-   switch (cb_type_hash)
-   {
-      case CB_MENU_WALLPAPER:
-      case CB_MENU_THUMBNAIL:
-         break;
-      default:
-         goto error_msg;
-   }
+   if (enum_idx == MSG_UNKNOWN)
+      goto error_msg;
 
    t = (retro_task_t*)calloc(1, sizeof(*t));
    if (!t)
@@ -389,6 +379,8 @@ error:
    nbio_free(handle);
    task_image_load_free(t);
    free(t);
+   if (nbio)
+      free(nbio);
 
 error_msg:
    RARCH_ERR("[image load] Failed to open '%s': %s.\n",

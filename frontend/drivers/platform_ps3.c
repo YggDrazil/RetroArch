@@ -33,6 +33,7 @@
 #endif
 
 #include "../frontend_driver.h"
+#include "../../file_path_special.h"
 #include "../../defines/ps3_defines.h"
 #include "../../defaults.h"
 #include "../../verbosity.h"
@@ -221,7 +222,7 @@ static void frontend_ps3_get_environment_settings(int *argc, char *argv[],
       fill_pathname_join(g_defaults.dir.shader,  g_defaults.dir.core,
             "shaders_cg", sizeof(g_defaults.dir.shader));
       fill_pathname_join(g_defaults.path.config, g_defaults.dir.port,
-            "retroarch.cfg",  sizeof(g_defaults.path.config));
+            file_path_str(FILE_PATH_MAIN_CONFIG),  sizeof(g_defaults.path.config));
       fill_pathname_join(g_defaults.dir.overlay, g_defaults.dir.core,
             "overlays", sizeof(g_defaults.dir.overlay));
       fill_pathname_join(g_defaults.dir.assets,   g_defaults.dir.core,
@@ -493,27 +494,27 @@ static int frontend_ps3_parse_drive_list(void *data)
    file_list_t *list = (file_list_t*)data;
 
    menu_entries_add_enum(list,
-         "/app_home/",   "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/app_home/",   "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_hdd0/",   "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_hdd0/",   "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_hdd1/",   "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_hdd1/",   "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/host_root/",  "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/host_root/",  "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb000/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb000/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb001/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb001/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb002/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb002/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb003/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb003/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb004/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb004/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb005/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb005/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
    menu_entries_add_enum(list,
-         "/dev_usb006/", "", MENU_ENUM_LABEL_UNKNOWN, MENU_FILE_DIRECTORY, 0, 0);
+         "/dev_usb006/", "", MSG_UNKNOWN, FILE_TYPE_DIRECTORY, 0, 0);
 #endif
 
    return 0;

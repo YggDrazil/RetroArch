@@ -245,7 +245,7 @@ void fill_pathname_noext(char *out_path, const char *in_path,
 
 char *find_last_slash(const char *str)
 {
-   const char *slash = strrchr(str, '/');
+   const char *slash     = strrchr(str, '/');
 #ifdef _WIN32
    const char *backslash = strrchr(str, '\\');
 
@@ -346,6 +346,12 @@ void fill_pathname_base(char *out, const char *in_path, size_t size)
    retro_assert(strlcpy(out, ptr, size) < size);
 }
 
+void fill_pathname_base_noext(char *out, const char *in_path, size_t size)
+{
+   fill_pathname_base(out, in_path, size);
+   path_remove_extension(out);
+}
+
 /**
  * fill_pathname_basedir:
  * @out_dir            : output directory
@@ -362,6 +368,13 @@ void fill_pathname_basedir(char *out_dir,
    if (out_dir != in_path)
       retro_assert(strlcpy(out_dir, in_path, size) < size);
    path_basedir(out_dir);
+}
+
+void fill_pathname_basedir_noext(char *out_dir,
+      const char *in_path, size_t size)
+{
+   fill_pathname_basedir(out_dir, in_path, size);
+   path_remove_extension(out_dir);
 }
 
 /**
@@ -505,7 +518,7 @@ bool path_is_absolute(const char *path)
 void path_resolve_realpath(char *buf, size_t size)
 {
 #ifndef RARCH_CONSOLE
-   char tmp[PATH_MAX_LENGTH];
+   char tmp[PATH_MAX_LENGTH] = {0};
 
    strlcpy(tmp, buf, sizeof(tmp));
 
@@ -574,6 +587,13 @@ void fill_pathname_join(char *out_path,
    retro_assert(strlcat(out_path, path, size) < size);
 }
 
+void fill_pathname_join_noext(char *out_path,
+      const char *dir, const char *path, size_t size)
+{
+   fill_pathname_join(out_path, dir, path, size);
+   path_remove_extension(out_path);
+}
+
 void fill_string_join(char *out_path,
       const char *append, size_t size)
 {
@@ -630,6 +650,7 @@ void fill_short_pathname_representation(char* out_rep,
    fill_pathname(path_short, path_basename(in_path), "",
             sizeof(path_short));
 
+#ifdef HAVE_COMPRESSION
    last_hash = (char*)strchr(path_short,'#');
    if(last_hash != NULL)
    {
@@ -644,5 +665,13 @@ void fill_short_pathname_representation(char* out_rep,
       strlcpy(out_rep, last_hash + 1, size);
    }
    else
+#endif
       strlcpy(out_rep, path_short, size);
+}
+
+void fill_short_pathname_representation_noext(char* out_rep,
+      const char *in_path, size_t size)
+{
+   fill_short_pathname_representation(out_rep, in_path, size);
+   path_remove_extension(out_rep);
 }

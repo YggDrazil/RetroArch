@@ -48,6 +48,11 @@ ifeq ($(GL_DEBUG), 1)
    CXXFLAGS += -DGL_DEBUG
 endif
 
+ifeq ($(VULKAN_DEBUG), 1)
+   CFLAGS += -DVULKAN_DEBUG
+   CXXFLAGS += -DVULKAN_DEBUG
+endif
+
 ifeq ($(HAVE_HARD_FLOAT), 1)
    DEFINES += -mfloat-abi=hard
 endif
@@ -129,7 +134,6 @@ OBJ += frontend/frontend.o \
        runloop.o \
 		 libretro-common/algorithms/mismatch.o \
        libretro-common/queues/task_queue.o \
-       tasks/tasks_internal.o \
        tasks/task_content.o \
 		 tasks/task_save_ram.o \
 		 tasks/task_save_state.o \
@@ -150,6 +154,7 @@ OBJ += frontend/frontend.o \
        libretro-common/file/nbio/nbio_stdio.o \
        libretro-common/file/file_path.o \
        file_path_special.o \
+       file_path_str.o \
        libretro-common/hash/rhash.o \
        audio/audio_driver.o \
        input/input_driver.o \
@@ -486,20 +491,8 @@ ifeq ($(HAVE_MENU_COMMON), 1)
       PSEUDO_NS :=
    endif
 
-ifeq ($(HAVE_LANGEXTRA), 1)
-OBJ +=	 menu/intl/menu_hash_de.o \
-          menu/intl/menu_hash_es.o \
-          menu/intl/menu_hash_eo.o \
-          menu/intl/menu_hash_fr.o \
-          menu/intl/menu_hash_it.o \
-          menu/intl/menu_hash_nl.o \
-          menu/intl/menu_hash_pl.o \
-          menu/intl/menu_hash_pt.o
-endif
-   OBJ += menu/menu_hash.o \
-          menu/menu_driver.o \
+   OBJ += menu/menu_driver.o \
           menu/menu_content.o \
-          menu/intl/menu_hash_us$(PSEUDO_NS).o \
           menu/menu_input.o \
           menu/menu_entry.o \
           menu/menu_entries.o \
@@ -677,6 +670,8 @@ endif
 OBJ += gfx/video_context_driver.o \
        gfx/drivers_context/gfx_null_ctx.o \
        gfx/video_state_tracker.o \
+		 libretro-common/gfx/math/vector_2.o \
+		 libretro-common/gfx/math/vector_3.o \
        libretro-common/gfx/math/matrix_4x4.o \
        libretro-common/gfx/math/matrix_3x3.o
 
@@ -732,8 +727,9 @@ ifeq ($(HAVE_FFMPEG), 1)
 ifneq ($(C89_BUILD), 1)
 ifneq ($(C90_BUILD), 1)
 ifneq ($(HAVE_GLES), 1)
-	OBJ += cores/libretro-ffmpeg/fft/fft.o
-	DEFINES += -Ideps -DHAVE_GL_FFT
+   OBJ += cores/libretro-ffmpeg/fft/fft.o
+   DEFINES += -Ideps -DHAVE_GL_FFT
+	NEED_CXX_LINKER=1
 endif
 endif
 endif
@@ -815,6 +811,7 @@ ifeq ($(HAVE_VULKAN), 1)
 		$(wildcard deps/glslang/glslang/OGLCompilersDLL/*.cpp) \
 		$(wildcard deps/glslang/glslang/glslang/MachineIndependent/*.cpp) \
 		$(wildcard deps/glslang/glslang/glslang/MachineIndependent/preprocessor/*.cpp) \
+		$(wildcard deps/glslang/glslang/hlsl/*.cpp) \
 		$(wildcard deps/glslang/glslang/glslang/OSDependent/$(GLSLANG_PLATFORM)/*.cpp)
 
 	SPIRV_CROSS_SOURCES := deps/SPIRV-Cross/spirv_cross.cpp
@@ -833,7 +830,7 @@ ifeq ($(HAVE_VULKAN), 1)
 			  -Ideps/glslang \
 			  -Ideps/SPIRV-Cross
 
-	CXXFLAGS += -Wno-switch -Wno-sign-compare -fno-strict-aliasing -Wno-maybe-uninitialized -Wno-reorder -Igfx/include
+	CXXFLAGS += -Wno-switch -Wno-sign-compare -fno-strict-aliasing -Wno-maybe-uninitialized -Wno-reorder -Wno-parentheses -Igfx/include
 	CFLAGS  += -Igfx/include
 
 	GLSLANG_OBJ := $(GLSLANG_SOURCES:.cpp=.o)
@@ -841,6 +838,7 @@ ifeq ($(HAVE_VULKAN), 1)
 
 	OBJ += gfx/drivers/vulkan.o \
 			 gfx/common/vulkan_common.o \
+			 libretro-common/vulkan/vulkan_symbol_wrapper.o \
 			 gfx/drivers_font/vulkan_raster_font.o \
 			 gfx/drivers_shader/shader_vulkan.o \
 			 gfx/drivers_shader/glslang_util.o \
